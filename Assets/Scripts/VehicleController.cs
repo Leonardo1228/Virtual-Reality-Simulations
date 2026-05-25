@@ -25,10 +25,10 @@ public class VehicleController : SimulationBody
     void ReadInput()
     {
         moveInput =
-            Input.GetAxis("Vertical");
+            ArduinoInput.Instance.vertical;
 
         steerInput =
-            Input.GetAxis("Horizontal");
+            ArduinoInput.Instance.horizontal;
 
         ApplyEngine();
 
