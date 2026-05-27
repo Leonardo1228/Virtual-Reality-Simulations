@@ -91,13 +91,43 @@ public class VehicleCollision : MonoBehaviour
         Transform point,
         SimulationBody body)
     {
-        float distance =
-            Vector3.Distance(
-                point.position,
-                body.transform.position
-            );
+        Vector3 direction =
+            point.position
+            - body.transform.position;
 
-        return distance <
+        float distance =
+            direction.magnitude;
+
+        float minDistance =
             pointRadius + body.radius;
+
+        if (distance < minDistance)
+        {
+            // Normal
+            Vector3 normal =
+                direction.normalized;
+
+            // Penetración
+            float penetration =
+                minDistance - distance;
+
+            // Empujar vehículo hacia afuera
+            vehicle.transform.position +=
+                normal
+                * penetration;
+
+            // Rebote ligero
+            vehicle.velocity =
+                Vector3.Reflect(
+                    vehicle.velocity,
+                    normal
+                ) * 0.2f;
+
+            return true;
+        }
+
+        return false;
     }
+
+
 }

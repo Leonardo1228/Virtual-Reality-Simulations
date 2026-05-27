@@ -2,7 +2,9 @@ using UnityEngine;
 
 public class WheelAnimator : MonoBehaviour
 {
-    [Header("Wheel References")]
+    [Header("References")]
+
+    public VehicleController vehicle;
 
     public Transform front_wheel;
 
@@ -10,43 +12,20 @@ public class WheelAnimator : MonoBehaviour
 
     [Header("Settings")]
 
-    public float wheelRadius = 0.6f;
+    public float wheelRotationSpeed = 800f;
 
     public float steeringAngle = 30f;
 
-    public float rotationMultiplier = 1f;
-
-    private VehicleController vehicle;
-
     private float wheelRotation;
-
-    void Awake()
-    {
-        vehicle = GetComponent<VehicleController>();
-    }
 
     void Update()
     {
-        AnimateSteering();
+        if (vehicle == null)
+            return;
 
         AnimateRolling();
-    }
 
-    void AnimateSteering()
-    {
-        float steerInput =
-            Input.GetAxis("Horizontal");
-
-        float angle =
-            steerInput * steeringAngle;
-
-        Vector3 euler =
-            front_wheel.localEulerAngles;
-
-        euler.y = angle;
-
-        front_wheel.localEulerAngles =
-            euler;
+        AnimateSteering();
     }
 
     void AnimateRolling()
@@ -54,25 +33,44 @@ public class WheelAnimator : MonoBehaviour
         float speed =
             vehicle.velocity.magnitude;
 
-        float rotationSpeed =
-            (speed / wheelRadius)
-            * Mathf.Rad2Deg
-            * rotationMultiplier;
+        float direction =
+            Mathf.Sign(vehicle.MoveInput);
 
         wheelRotation +=
-            rotationSpeed * Time.deltaTime;
+            speed
+            * wheelRotationSpeed
+            * direction
+            * Time.deltaTime;
 
-        RotateWheel(front_wheel);
+        // Cambia eje si tu modelo usa otro
+        front_wheel.localRotation =
+            Quaternion.Euler(
+                wheelRotation,
+                front_wheel.localEulerAngles.y,
+                front_wheel.localEulerAngles.z
+            );
 
-        RotateWheel(rear_wheel);
+        rear_wheel.localRotation =
+            Quaternion.Euler(
+                wheelRotation,
+                rear_wheel.localEulerAngles.y,
+                rear_wheel.localEulerAngles.z
+            );
     }
 
-    void RotateWheel(Transform wheel)
+    void AnimateSteering()
     {
-        wheel.Rotate(
-            Vector3.right,
-            wheelRotation * Time.deltaTime,
-            Space.Self
-        );
+        float steer =
+            vehicle.SteerInput;
+
+        Vector3 euler =
+            front_wheel.localEulerAngles;
+
+        // Cambia eje si hace falta
+        euler.y =
+            steer * steeringAngle;
+
+        front_wheel.localEulerAngles =
+            euler;
     }
 }

@@ -10,7 +10,8 @@ public class SimulationBody : MonoBehaviour
 
     public float restitution = 0.2f;
 
-    public float radius = 1f;
+    [HideInInspector]
+    public float radius;
 
     [Header("Gravity")]
 
@@ -41,16 +42,35 @@ public class SimulationBody : MonoBehaviour
     {
         float dt = Time.deltaTime;
 
+        // Actualizar radius antes de física
+        UpdateRadius();
+
         Integrate(dt);
 
         Move(dt);
     }
 
+    void UpdateRadius()
+    {
+        Vector3 scale =
+            transform.localScale;
+
+        // Radius proporcional al tamaño promedio
+        radius =
+            (
+                scale.x
+                + scale.y
+                + scale.z
+            ) / 3f * 0.5f;
+    }
+
     protected virtual void Integrate(float dt)
     {
+        // Drag
         Vector3 dragForce =
             -velocity * drag;
 
+        // Gravedad
         Vector3 gravityForce =
             Vector3.zero;
 
@@ -60,16 +80,23 @@ public class SimulationBody : MonoBehaviour
                 gravity * mass;
         }
 
+        // Aceleración lineal
         acceleration =
-            (accumulatedForce
-            + dragForce
-            + gravityForce)
-            / mass;
+            (
+                accumulatedForce
+                + dragForce
+                + gravityForce
+            ) / mass;
 
         velocity += acceleration * dt;
 
-        ApplyGroundFriction(dt);
+        // Fricción solo en suelo
+        if (transform.position.y <= 0.01f)
+        {
+            ApplyGroundFriction(dt);
+        }
 
+        // Angular
         angularAcceleration =
             accumulatedTorque / mass;
 
@@ -83,6 +110,7 @@ public class SimulationBody : MonoBehaviour
             Space.World
         );
 
+        // Limpiar acumuladores
         accumulatedForce = Vector3.zero;
 
         accumulatedTorque = Vector3.zero;
@@ -130,19 +158,23 @@ public class SimulationBody : MonoBehaviour
 
             transform.position = pos;
 
+            // Rebote vertical
             if (velocity.y < 0f)
             {
                 velocity.y *= -restitution;
 
+                // Evitar vibración infinita
                 if (Mathf.Abs(velocity.y) < 0.5f)
                 {
                     velocity.y = 0f;
                 }
             }
 
+            // Fricción horizontal
             velocity.x *= 0.92f;
             velocity.z *= 0.92f;
 
+            // Frenar rotación lentamente
             angularVelocity *= 0.96f;
         }
     }
@@ -167,4 +199,5 @@ public class SimulationBody : MonoBehaviour
                 normal.normalized
             ) * damping;
     }
-}
+}   
+

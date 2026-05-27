@@ -6,9 +6,6 @@ public class ArduinoInput : MonoBehaviour
 {
     public static ArduinoInput Instance;
 
-    public float centerX = 512f;
-    public float centerY = 512f;
-
     [Header("Serial")]
 
     public string portName = "COM3";
@@ -17,7 +14,15 @@ public class ArduinoInput : MonoBehaviour
 
     private SerialPort serial;
 
-    [Header("Joystick")]
+    [Header("Calibration")]
+
+    public float centerX = 512f;
+
+    public float centerY = 512f;
+
+    public float deadzone = 0.18f;
+
+    [Header("Output")]
 
     [Range(-1f, 1f)]
     public float horizontal;
@@ -39,7 +44,7 @@ public class ArduinoInput : MonoBehaviour
                 baudRate
             );
 
-            serial.ReadTimeout = 50;
+            serial.ReadTimeout = 20;
 
             serial.Open();
 
@@ -50,7 +55,7 @@ public class ArduinoInput : MonoBehaviour
         catch (Exception e)
         {
             Debug.LogError(
-                "Error Serial: "
+                "Serial Error: "
                 + e.Message
             );
         }
@@ -69,6 +74,8 @@ public class ArduinoInput : MonoBehaviour
             string data =
                 serial.ReadLine();
 
+            data = data.Trim();
+
             string[] values =
                 data.Split(',');
 
@@ -76,31 +83,53 @@ public class ArduinoInput : MonoBehaviour
                 return;
 
             float x =
-                float.Parse(values[0]);
+                float.Parse(
+                    values[0].Trim()
+                );
 
             float y =
-                float.Parse(values[1]);
+                float.Parse(
+                    values[1].Trim()
+                );
 
-            // Normalizacion del input de joystick
             horizontal =
-                (x - centerX) / 512f;
+                (x - centerX)
+                / 512f;
 
             vertical =
-                (y - centerY) / 512f;
+                (y - centerY)
+                / 512f;
 
-            //Y invertido
+            // Invertir vertical
             vertical *= -1f;
 
-            // Filtración de ruido/Vibración del joystick
-            if (Mathf.Abs(horizontal) < 0.15f)
+            // Deadzone
+            if (Mathf.Abs(horizontal)
+                < deadzone)
             {
                 horizontal = 0f;
             }
 
-            if (Mathf.Abs(vertical) < 0.15f)
+            if (Mathf.Abs(vertical)
+                < deadzone)
             {
                 vertical = 0f;
             }
+
+            // Clamp
+            horizontal =
+                Mathf.Clamp(
+                    horizontal,
+                    -1f,
+                    1f
+                );
+
+            vertical =
+                Mathf.Clamp(
+                    vertical,
+                    -1f,
+                    1f
+                );
         }
         catch
         {

@@ -82,7 +82,11 @@ public class WallGenerator : MonoBehaviour
                 GameObject brick =
                     Instantiate(
                         brickPrefab,
-                        pos,
+                        pos + new Vector3(
+                        0f,
+                        0f,
+                        Random.Range(-0.002f, 0.002f)
+                        ),
                         Quaternion.identity,
                         transform
                     );

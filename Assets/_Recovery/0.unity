@@ -354,10 +354,10 @@ PrefabInstance:
       addedObject: {fileID: 2096292986}
     - targetCorrespondingSourceObject: {fileID: 5595306355369600747, guid: 4230af04511df804387a7cceaf076ad0, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 2096292990}
+      addedObject: {fileID: 2096292991}
     - targetCorrespondingSourceObject: {fileID: 5595306355369600747, guid: 4230af04511df804387a7cceaf076ad0, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 2096292991}
+      addedObject: {fileID: 2096292992}
   m_SourcePrefab: {fileID: 100100000, guid: 4230af04511df804387a7cceaf076ad0, type: 3}
 --- !u!1 &296751232
 GameObject:
@@ -388,6 +388,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 471a9cdb770a50941b01b8f6e70827ea, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ArduinoInput
+  portName: COM3
+  baudRate: 9600
+  centerX: 512
+  centerY: 512
+  deadzone: 0.18
+  horizontal: 0
+  vertical: 0
 --- !u!4 &296751234
 Transform:
   m_ObjectHideFlags: 0
@@ -490,10 +497,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eb43d7ef2bf181449957e19ba362f43e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HeavyWall
-  mass: 15000
-  drag: 2
+  mass: 25000
+  drag: 1.5
   restitution: 0.02
-  radius: 0.45
+  radius: 1.8
   useGravity: 0
   gravity: {x: 0, y: -9.81, z: 0}
   velocity: {x: 0, y: 0, z: 0}
@@ -501,7 +508,9 @@ MonoBehaviour:
   angularVelocity: {x: 0, y: 0, z: 0}
   angularAcceleration: {x: 0, y: 0, z: 0}
   rotationalDrag: 0.99
-  resistanceForce: 30000
+  resistanceForce: 35000
+  bounceForce: 0.1
+  collapseTorque: 1500
   startWithGravity: 1
 --- !u!23 &478740293
 MeshRenderer:
@@ -571,7 +580,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -1.41, y: 5.97, z: 0}
   m_LocalScale: {x: 10, y: 5, z: 2}
-  m_ConstrainProportionsScale: 0
+  m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -737,10 +746,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Wind
   windDirection: {x: 1, y: 0, z: 0}
-  strength: 1
-  radius: 20
+  strength: 100000
+  radius: 200
   turbulenceStrength: 500
-  turbulenceFrequency: 1
+  turbulenceFrequency: 100
 --- !u!4 &1217867086
 Transform:
   m_ObjectHideFlags: 0
@@ -751,7 +760,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -0.91864, y: -0.64305, z: -43.24}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.61994, y: 0.61994, z: 0.61994}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -1032,7 +1041,7 @@ MonoBehaviour:
   frontPoint: {fileID: 381942575}
   centerPoint: {fileID: 1832077126}
   rearPoint: {fileID: 1156178265}
-  pointRadius: 2.5
+  pointRadius: 1
   impactMultiplier: 100
 --- !u!114 &2096292988
 MonoBehaviour:
@@ -1046,9 +1055,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 55bc6bf6b96aa2648b7b7085718dade0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SimulationBody
-  mass: 3500
-  drag: 2
-  restitution: 0.02
+  mass: 2500
+  drag: 0.15
+  restitution: 0.03
   radius: 2
   useGravity: 1
   gravity: {x: 0, y: -9.81, z: 0}
@@ -1062,33 +1071,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 5110835506996460625, guid: 4230af04511df804387a7cceaf076ad0, type: 3}
   m_PrefabInstance: {fileID: 205591021}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &2096292990
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2096292985}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e5c2128664e033149b0e6e07bde0b368, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::VehicleController
-  mass: 1000
-  drag: 0.1
-  restitution: 0.5
-  radius: 1
-  useGravity: 1
-  gravity: {x: 0, y: -9.81, z: 0}
-  velocity: {x: 0, y: 0, z: 0}
-  acceleration: {x: 0, y: 0, z: 0}
-  angularVelocity: {x: 0, y: 0, z: 0}
-  angularAcceleration: {x: 0, y: 0, z: 0}
-  rotationalDrag: 0.98
-  engineForce: 12000
-  steeringSpeed: 200
-  maxSpeed: 25
-  accelerationResponse: 4
 --- !u!114 &2096292991
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1101,11 +1083,38 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e65a4303407205248ae0babdc881bf30, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WheelAnimator
+  vehicle: {fileID: 2096292992}
   front_wheel: {fileID: 381942575}
   rear_wheel: {fileID: 1156178265}
-  wheelRadius: 0.6
+  wheelRotationSpeed: 800
   steeringAngle: 30
-  rotationMultiplier: 1
+--- !u!114 &2096292992
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2096292985}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e5c2128664e033149b0e6e07bde0b368, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VehicleController
+  mass: 1000
+  drag: 0.2
+  restitution: 0.2
+  radius: 1
+  useGravity: 1
+  gravity: {x: 0, y: -9.81, z: 0}
+  velocity: {x: 0, y: 0, z: 0}
+  acceleration: {x: 0, y: 0, z: 0}
+  angularVelocity: {x: 0, y: 0, z: 0}
+  angularAcceleration: {x: 0, y: 0, z: 0}
+  rotationalDrag: 0.96
+  engineForce: 8
+  steeringSpeed: 120
+  maxSpeed: 25
+  arduinoInput: {fileID: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

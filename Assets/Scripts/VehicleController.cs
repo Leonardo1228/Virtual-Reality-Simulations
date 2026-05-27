@@ -3,17 +3,22 @@ using UnityEngine;
 public class VehicleController : SimulationBody
 {
     [Header("Vehicle")]
-    public float engineForce = 12000f;
 
-    public float steeringSpeed = 45f;
+    public float engineForce = 8f;
 
-    public float maxSpeed = 25f;
+    public float steeringSpeed = 120f;
 
-    public float accelerationResponse = 4f;
+    public float maxSpeed = 35f;
+
+    public ArduinoInput arduinoInput;
 
     private float moveInput;
 
     private float steerInput;
+
+    public float MoveInput => moveInput;
+
+    public float SteerInput => steerInput;
 
     protected override void Update()
     {
@@ -24,19 +29,48 @@ public class VehicleController : SimulationBody
 
     void ReadInput()
     {
+        // TECLADO
+        float keyboardVertical =
+            Input.GetAxis("Vertical");
+
+        float keyboardHorizontal =
+            Input.GetAxis("Horizontal");
+
+        // JOYSTICK
+        float joystickVertical = 0f;
+
+        float joystickHorizontal = 0f;
+
+        // SOLO SI EXISTE ARDUINO
+        if (arduinoInput != null)
+        {
+            joystickVertical =
+                arduinoInput.vertical;
+
+            joystickHorizontal =
+                arduinoInput.horizontal;
+        }
+
+        // PRIORIDAD:
+        // joystick si se mueve,
+        // teclado si no
+
         moveInput =
-            ArduinoInput.Instance.vertical;
+            Mathf.Abs(joystickVertical) > 0.1f
+            ? joystickVertical
+            : keyboardVertical;
 
         steerInput =
-            ArduinoInput.Instance.horizontal;
+            Mathf.Abs(joystickHorizontal) > 0.1f
+            ? joystickHorizontal
+            : keyboardHorizontal;
 
-        ApplyEngine();
+        // VELOCIDAD OBJETIVO
+        Vector3 forwardVelocity =
+    transform.forward
+    * moveInput
+    * maxSpeed;
 
-        ApplySteering();
-    }
-
-    void ApplyEngine()
-    {
         Vector3 horizontalVelocity =
             new Vector3(
                 velocity.x,
@@ -44,44 +78,26 @@ public class VehicleController : SimulationBody
                 velocity.z
             );
 
-        float currentSpeed =
-            horizontalVelocity.magnitude;
-
-        // Factor de reducción cerca de velocidad máxima
-        float speedFactor =
-            1f - Mathf.Clamp01(
-                currentSpeed / maxSpeed
+        // ACELERACIÓN PROGRESIVA
+        horizontalVelocity =
+            Vector3.Lerp(
+                horizontalVelocity,
+                forwardVelocity,
+                engineForce * Time.deltaTime
             );
 
-        float finalForce =
-            engineForce
-            * speedFactor
-            * accelerationResponse;
+        // APLICAR
+        velocity.x =
+            horizontalVelocity.x;
 
-        Vector3 force =
-            transform.forward
-            * moveInput
-            * finalForce;
+        velocity.z =
+            horizontalVelocity.z;
 
-        AddForce(force);
-    }
-
-    void ApplySteering()
-    {
-        float speed =
-            velocity.magnitude;
-
-        if (speed < 0.5f)
-            return;
-
-        float steeringFactor =
-            Mathf.Clamp01(speed / maxSpeed);
-
+        // GIRO
         transform.Rotate(
             Vector3.up,
             steerInput
             * steeringSpeed
-            * steeringFactor
             * Time.deltaTime
         );
     }

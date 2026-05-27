@@ -4,7 +4,11 @@ public class HeavyWall : SimulationBody
 {
     [Header("Wall")]
 
-    public float resistanceForce = 30000f;
+    public float resistanceForce = 35000f;
+
+    public float bounceForce = 0.15f;
+
+    public float collapseTorque = 2000f;
 
     public bool startWithGravity = true;
 
@@ -35,26 +39,29 @@ public class HeavyWall : SimulationBody
         float force =
             impactForce.magnitude;
 
-        // Rebote del carro
+        Vector3 normal =
+            (
+                vehicle.transform.position
+                - transform.position
+            ).normalized;
+
+        // MURO RESISTE
         if (force < resistanceForce)
         {
-            Vector3 normal =
-                (vehicle.transform.position
-                - transform.position)
-                .normalized;
-
             vehicle.Bounce(
                 normal,
-                0.15f
+                bounceForce
             );
 
             return;
         }
 
+        // MURO CEDE
         AddForce(impactForce);
 
         AddTorque(
-            Random.onUnitSphere * 2000f
+            Random.onUnitSphere
+            * collapseTorque
         );
     }
 }
