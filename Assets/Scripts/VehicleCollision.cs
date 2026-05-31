@@ -6,6 +6,9 @@ public class VehicleCollision : MonoBehaviour
     public static List<BrickWall> allBrickWalls =
         new List<BrickWall>();
 
+    public static List<HeavyWall> allWalls =
+        new List<HeavyWall>();
+
     [Header("Collision Points")]
 
     public Transform frontPoint;
@@ -29,6 +32,8 @@ public class VehicleCollision : MonoBehaviour
     void Update()
     {
         CheckBrickWallCollisions();
+
+        CheckHeavyWallCollisions();
     }
 
     void CheckBrickWallCollisions()
@@ -38,20 +43,12 @@ public class VehicleCollision : MonoBehaviour
             if (wall == null)
                 continue;
 
-            float distance =
-                Vector3.Distance(
-                    transform.position,
-                    wall.transform.position
-                );
+            bool collision =
+                CheckWallPoint(frontPoint, wall)
+                || CheckWallPoint(centerPoint, wall)
+                || CheckWallPoint(rearPoint, wall);
 
-            float wallRadius =
-                Mathf.Max(
-                    wall.transform.localScale.x,
-                    wall.transform.localScale.y
-                );
-
-            if (distance >
-                pointRadius + wallRadius)
+            if (!collision)
                 continue;
 
             Vector3 impact =
@@ -63,6 +60,53 @@ public class VehicleCollision : MonoBehaviour
                 impact
             );
         }
+    }
+
+    void CheckHeavyWallCollisions()
+    {
+        foreach (HeavyWall wall in allWalls)
+        {
+            if (wall == null)
+                continue;
+
+            bool collision =
+                CheckCollision(frontPoint, wall)
+                || CheckCollision(centerPoint, wall)
+                || CheckCollision(rearPoint, wall);
+
+            if (!collision)
+                continue;
+
+            Vector3 impact =
+                vehicle.velocity
+                * vehicle.mass
+                * impactMultiplier;
+
+            wall.ReceiveImpact(
+                impact,
+                vehicle
+            );
+        }
+    }
+
+    bool CheckWallPoint(
+        Transform point,
+        BrickWall wall)
+    {
+        float wallRadius =
+            Mathf.Max(
+                wall.transform.localScale.x,
+                wall.transform.localScale.y
+            ) * 0.5f;
+
+        float distance =
+            Vector3.Distance(
+                point.position,
+                wall.transform.position
+            );
+
+        return distance <
+            pointRadius + wallRadius;
     }
 
     bool CheckCollision(
@@ -81,20 +125,16 @@ public class VehicleCollision : MonoBehaviour
 
         if (distance < minDistance)
         {
-            // Normal
             Vector3 normal =
                 direction.normalized;
 
-            // Penetración
             float penetration =
                 minDistance - distance;
 
-            // Empujar vehículo hacia afuera
             vehicle.transform.position +=
                 normal
                 * penetration;
 
-            // Rebote ligero
             vehicle.velocity =
                 Vector3.Reflect(
                     vehicle.velocity,
@@ -106,6 +146,4 @@ public class VehicleCollision : MonoBehaviour
 
         return false;
     }
-
-
 }
