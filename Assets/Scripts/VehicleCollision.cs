@@ -3,11 +3,8 @@ using System.Collections.Generic;
 
 public class VehicleCollision : MonoBehaviour
 {
-    public static List<Brick> allBricks =
-        new List<Brick>();
-
-    public static List<HeavyWall> allWalls =
-        new List<HeavyWall>();
+    public static List<BrickWall> allBrickWalls =
+        new List<BrickWall>();
 
     [Header("Collision Points")]
 
@@ -31,48 +28,30 @@ public class VehicleCollision : MonoBehaviour
 
     void Update()
     {
-        CheckBrickCollisions();
-
-        CheckHeavyWallCollisions();
+        CheckBrickWallCollisions();
     }
 
-    void CheckBrickCollisions()
+    void CheckBrickWallCollisions()
     {
-        foreach (Brick brick in allBricks)
-        {
-            if (brick == null)
-                continue;
-
-            bool collision =
-                CheckCollision(frontPoint, brick)
-                || CheckCollision(centerPoint, brick)
-                || CheckCollision(rearPoint, brick);
-
-            if (!collision)
-                continue;
-
-            Vector3 impact =
-                vehicle.velocity
-                * vehicle.mass
-                * impactMultiplier;
-
-            brick.ApplyImpact(impact);
-        }
-    }
-
-    void CheckHeavyWallCollisions()
-    {
-        foreach (HeavyWall wall in allWalls)
+        foreach (BrickWall wall in allBrickWalls)
         {
             if (wall == null)
                 continue;
 
-            bool collision =
-                CheckCollision(frontPoint, wall)
-                || CheckCollision(centerPoint, wall)
-                || CheckCollision(rearPoint, wall);
+            float distance =
+                Vector3.Distance(
+                    transform.position,
+                    wall.transform.position
+                );
 
-            if (!collision)
+            float wallRadius =
+                Mathf.Max(
+                    wall.transform.localScale.x,
+                    wall.transform.localScale.y
+                );
+
+            if (distance >
+                pointRadius + wallRadius)
                 continue;
 
             Vector3 impact =
@@ -81,8 +60,7 @@ public class VehicleCollision : MonoBehaviour
                 * impactMultiplier;
 
             wall.ReceiveImpact(
-                impact,
-                vehicle
+                impact
             );
         }
     }

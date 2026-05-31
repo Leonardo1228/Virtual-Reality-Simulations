@@ -42,7 +42,6 @@ public class SimulationBody : MonoBehaviour
     {
         float dt = Time.deltaTime;
 
-        // Actualizar radius antes de física
         UpdateRadius();
 
         Integrate(dt);
@@ -55,22 +54,17 @@ public class SimulationBody : MonoBehaviour
         Vector3 scale =
             transform.localScale;
 
-        // Radius proporcional al tamaño promedio
+        // Más adecuado para muros y vehículos
         radius =
-            (
-                scale.x
-                + scale.y
-                + scale.z
-            ) / 3f * 0.5f;
+            Mathf.Max(
+                scale.x,
+                scale.y,
+                scale.z
+            ) * 0.5f;
     }
 
     protected virtual void Integrate(float dt)
     {
-        // Drag
-        Vector3 dragForce =
-            -velocity * drag;
-
-        // Gravedad
         Vector3 gravityForce =
             Vector3.zero;
 
@@ -80,23 +74,25 @@ public class SimulationBody : MonoBehaviour
                 gravity * mass;
         }
 
-        // Aceleración lineal
+        Vector3 dragForce =
+            -velocity * drag;
+
         acceleration =
             (
                 accumulatedForce
-                + dragForce
                 + gravityForce
+                + dragForce
             ) / mass;
 
-        velocity += acceleration * dt;
+        velocity +=
+            acceleration * dt;
 
-        // Fricción solo en suelo
+        // Fricción solo cuando toca suelo
         if (transform.position.y <= 0.01f)
         {
             ApplyGroundFriction(dt);
         }
 
-        // Angular
         angularAcceleration =
             accumulatedTorque / mass;
 
@@ -110,10 +106,11 @@ public class SimulationBody : MonoBehaviour
             Space.World
         );
 
-        // Limpiar acumuladores
-        accumulatedForce = Vector3.zero;
+        accumulatedForce =
+            Vector3.zero;
 
-        accumulatedTorque = Vector3.zero;
+        accumulatedTorque =
+            Vector3.zero;
     }
 
     void ApplyGroundFriction(float dt)
@@ -134,13 +131,17 @@ public class SimulationBody : MonoBehaviour
                 friction * dt
             );
 
-        velocity.x = horizontal.x;
-        velocity.z = horizontal.z;
+        velocity.x =
+            horizontal.x;
+
+        velocity.z =
+            horizontal.z;
     }
 
     protected virtual void Move(float dt)
     {
-        transform.position += velocity * dt;
+        transform.position +=
+            velocity * dt;
 
         CheckGroundCollision();
     }
@@ -154,39 +155,45 @@ public class SimulationBody : MonoBehaviour
 
         if (pos.y < groundHeight)
         {
-            pos.y = groundHeight;
+            pos.y =
+                groundHeight;
 
-            transform.position = pos;
+            transform.position =
+                pos;
 
-            // Rebote vertical
             if (velocity.y < 0f)
             {
-                velocity.y *= -restitution;
+                velocity.y *=
+                    -restitution;
 
-                // Evitar vibración infinita
-                if (Mathf.Abs(velocity.y) < 0.5f)
+                if (Mathf.Abs(
+                    velocity.y)
+                    < 0.5f)
                 {
                     velocity.y = 0f;
                 }
             }
 
-            // Fricción horizontal
             velocity.x *= 0.92f;
             velocity.z *= 0.92f;
 
-            // Frenar rotación lentamente
-            angularVelocity *= 0.96f;
+            angularVelocity *=
+                0.96f;
         }
     }
 
-    public void AddForce(Vector3 force)
+    public void AddForce(
+        Vector3 force)
     {
-        accumulatedForce += force;
+        accumulatedForce +=
+            force;
     }
 
-    public void AddTorque(Vector3 torque)
+    public void AddTorque(
+        Vector3 torque)
     {
-        accumulatedTorque += torque;
+        accumulatedTorque +=
+            torque;
     }
 
     public void Bounce(
@@ -199,5 +206,21 @@ public class SimulationBody : MonoBehaviour
                 normal.normalized
             ) * damping;
     }
-}   
+
+    public float KineticEnergy()
+    {
+        return
+            0.5f *
+            mass *
+            velocity.sqrMagnitude;
+    }
+
+    public float Momentum()
+    {
+        return
+            mass *
+            velocity.magnitude;
+    }
+}
+
 
