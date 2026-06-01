@@ -30,6 +30,9 @@ public class ArduinoInput : MonoBehaviour
     [Range(-1f, 1f)]
     public float vertical;
 
+    public bool IsConnected =>
+    serial != null
+    && serial.IsOpen;
     void Awake()
     {
         Instance = this;

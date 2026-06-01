@@ -10,11 +10,13 @@ public class VehicleController : SimulationBody
 
     public float maxSpeed = 35f;
 
-    public ArduinoInput arduinoInput;
+    private ArduinoInput arduinoInput;
 
     private float moveInput;
 
     private float steerInput;
+
+
 
     public float MoveInput => moveInput;
 
@@ -22,6 +24,12 @@ public class VehicleController : SimulationBody
 
     protected override void Update()
     {
+        if (arduinoInput == null)
+        {
+            arduinoInput =
+                ArduinoInput.Instance;
+        }
+
         ReadInput();
 
         base.Update();
@@ -29,47 +37,45 @@ public class VehicleController : SimulationBody
 
     void ReadInput()
     {
-        // TECLADO
-        float keyboardVertical =
-            Input.GetAxis("Vertical");
+        bool arduinoReady =
+            arduinoInput != null
+            && arduinoInput.IsConnected;
 
-        float keyboardHorizontal =
-            Input.GetAxis("Horizontal");
-
-        // JOYSTICK
-        float joystickVertical = 0f;
-
-        float joystickHorizontal = 0f;
-
-        // SOLO SI EXISTE ARDUINO
-        if (arduinoInput != null)
+        if (arduinoReady)
         {
-            joystickVertical =
+            moveInput =
                 arduinoInput.vertical;
 
-            joystickHorizontal =
+            steerInput =
                 arduinoInput.horizontal;
         }
+        else
+        {
+            moveInput =
+                Input.GetAxis("Vertical");
 
-        // PRIORIDAD:
-        // joystick si se mueve,
-        // teclado si no
+            steerInput =
+                Input.GetAxis("Horizontal");
+        }
 
         moveInput =
-            Mathf.Abs(joystickVertical) > 0.1f
-            ? joystickVertical
-            : keyboardVertical;
+            Mathf.Clamp(
+                moveInput,
+                -1f,
+                1f
+            );
 
         steerInput =
-            Mathf.Abs(joystickHorizontal) > 0.1f
-            ? joystickHorizontal
-            : keyboardHorizontal;
+            Mathf.Clamp(
+                steerInput,
+                -1f,
+                1f
+            );
 
-        // VELOCIDAD OBJETIVO
-        Vector3 forwardVelocity =
-    transform.forward
-    * moveInput
-    * maxSpeed;
+        Vector3 targetVelocity =
+            transform.forward
+            * moveInput
+            * maxSpeed;
 
         Vector3 horizontalVelocity =
             new Vector3(
@@ -78,22 +84,20 @@ public class VehicleController : SimulationBody
                 velocity.z
             );
 
-        // ACELERACIÓN PROGRESIVA
         horizontalVelocity =
             Vector3.Lerp(
                 horizontalVelocity,
-                forwardVelocity,
-                engineForce * Time.deltaTime
+                targetVelocity,
+                engineForce
+                * Time.deltaTime
             );
 
-        // APLICAR
         velocity.x =
             horizontalVelocity.x;
 
         velocity.z =
             horizontalVelocity.z;
 
-        // GIRO
         transform.Rotate(
             Vector3.up,
             steerInput
