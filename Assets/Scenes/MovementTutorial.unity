@@ -504,8 +504,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fb97670dd2fb015429a8d32eece7308c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TutorialWall
-  autoUseScale: 1
-  halfExtents: {x: 5, y: 2, z: 0.5}
 --- !u!64 &211960851
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -1148,8 +1146,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fb97670dd2fb015429a8d32eece7308c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TutorialWall
-  autoUseScale: 1
-  halfExtents: {x: 5, y: 2, z: 0.5}
 --- !u!64 &1518558719
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -1276,8 +1272,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fb97670dd2fb015429a8d32eece7308c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TutorialWall
-  autoUseScale: 1
-  halfExtents: {x: 5, y: 2, z: 0.5}
 --- !u!64 &1676391744
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -1558,8 +1552,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fb97670dd2fb015429a8d32eece7308c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TutorialWall
-  autoUseScale: 1
-  halfExtents: {x: 5, y: 2, z: 0.5}
 --- !u!64 &1684319129
 MeshCollider:
   m_ObjectHideFlags: 0
