@@ -1,36 +1,20 @@
 using UnityEngine;
 
+[ExecuteAlways]
 public class TutorialWall : MonoBehaviour
 {
-    [Header("Wall")]
+    private Renderer cachedRenderer;
 
-    public bool autoUseScale = true;
-
-    public Vector3 halfExtents =
-        new Vector3(
-            5f,
-            2f,
-            0.5f
-        );
-
-    public Vector3 Extents
+    void Awake()
     {
-        get
-        {
-            if (autoUseScale)
-            {
-                return
-                    transform.localScale
-                    * 0.5f;
-            }
-
-            return halfExtents;
-        }
+        UpdateRenderer();
     }
 
     void OnEnable()
     {
         VehicleCollision.allTutorialWalls.Add(this);
+
+        UpdateRenderer();
     }
 
     void OnDisable()
@@ -38,25 +22,53 @@ public class TutorialWall : MonoBehaviour
         VehicleCollision.allTutorialWalls.Remove(this);
     }
 
+    void UpdateRenderer()
+    {
+        cachedRenderer =
+            GetComponentInChildren<Renderer>();
+    }
+
+    public Bounds GetWorldBounds()
+    {
+        if (cachedRenderer == null)
+            UpdateRenderer();
+
+        return cachedRenderer.bounds;
+    }
+
+    public Vector3 GetHalfExtents()
+    {
+        Bounds b =
+            GetWorldBounds();
+
+        return b.extents;
+    }
+
+    public Vector3 GetCenter()
+    {
+        Bounds b =
+            GetWorldBounds();
+
+        return b.center;
+    }
+
     void OnDrawGizmos()
     {
-        Gizmos.color = Color.yellow;
+        if (cachedRenderer == null)
+            UpdateRenderer();
 
-        Matrix4x4 old =
-            Gizmos.matrix;
+        if (cachedRenderer == null)
+            return;
 
-        Gizmos.matrix =
-            Matrix4x4.TRS(
-                transform.position,
-                transform.rotation,
-                Vector3.one
-            );
+        Bounds b =
+            cachedRenderer.bounds;
+
+        Gizmos.color =
+            Color.yellow;
 
         Gizmos.DrawWireCube(
-            Vector3.zero,
-            Extents * 2f
+            b.center,
+            b.size
         );
-
-        Gizmos.matrix = old;
     }
 }

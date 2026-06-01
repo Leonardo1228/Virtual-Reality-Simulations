@@ -123,83 +123,74 @@ public class VehicleCollision : MonoBehaviour
     Transform point,
     TutorialWall wall)
     {
-        Vector3 localPoint =
-            wall.transform.InverseTransformPoint(
-                point.position
-            );
+        Bounds bounds =
+            wall.GetWorldBounds();
 
-        Vector3 ext =
-            wall.Extents;
+        Vector3 p =
+            point.position;
 
-        bool inside =
-            Mathf.Abs(localPoint.x) <= ext.x
-            &&
-            Mathf.Abs(localPoint.y) <= ext.y
-            &&
-            Mathf.Abs(localPoint.z) <= ext.z;
-
-        if (!inside)
+        if (!bounds.Contains(p))
             return;
 
+        Vector3 center =
+            bounds.center;
+
+        Vector3 ext =
+            bounds.extents;
+
+        Vector3 local =
+            p - center;
+
         float dx =
-            ext.x - Mathf.Abs(localPoint.x);
+            ext.x - Mathf.Abs(local.x);
 
         float dy =
-            ext.y - Mathf.Abs(localPoint.y);
+            ext.y - Mathf.Abs(local.y);
 
         float dz =
-            ext.z - Mathf.Abs(localPoint.z);
+            ext.z - Mathf.Abs(local.z);
 
-        float minPen =
+        float penetration =
             Mathf.Min(dx, dy, dz);
 
-        Vector3 localNormal =
-            Vector3.zero;
+        Vector3 normal;
 
-        if (minPen == dx)
+        if (penetration == dx)
         {
-            localNormal =
-                localPoint.x > 0
+            normal =
+                local.x > 0f
                 ? Vector3.right
                 : Vector3.left;
         }
-        else if (minPen == dy)
+        else if (penetration == dy)
         {
-            localNormal =
-                localPoint.y > 0
+            normal =
+                local.y > 0f
                 ? Vector3.up
                 : Vector3.down;
         }
         else
         {
-            localNormal =
-                localPoint.z > 0
+            normal =
+                local.z > 0f
                 ? Vector3.forward
                 : Vector3.back;
         }
 
-        Vector3 worldNormal =
-            wall.transform.TransformDirection(
-                localNormal
-            );
-
-        float safety =
-            0.05f;
-
         vehicle.transform.position +=
-            worldNormal
-            * (minPen + safety);
+            normal
+            * (penetration + 0.1f);
 
         float vn =
             Vector3.Dot(
                 vehicle.velocity,
-                worldNormal
+                normal
             );
 
         if (vn < 0f)
         {
             vehicle.velocity -=
-                worldNormal * vn;
+                normal * vn;
         }
     }
 
