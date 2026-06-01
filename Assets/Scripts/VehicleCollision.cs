@@ -9,6 +9,9 @@ public class VehicleCollision : MonoBehaviour
     public static List<HeavyWall> allWalls =
         new List<HeavyWall>();
 
+    public static List<TutorialWall> allTutorialWalls =
+    new List<TutorialWall>();
+
     [Header("Collision Points")]
 
     public Transform frontPoint;
@@ -34,6 +37,8 @@ public class VehicleCollision : MonoBehaviour
         CheckBrickWallCollisions();
 
         CheckHeavyWallCollisions();
+
+        CheckTutorialWallCollisions();
     }
 
     void CheckBrickWallCollisions()
@@ -86,6 +91,115 @@ public class VehicleCollision : MonoBehaviour
                 impact,
                 vehicle
             );
+        }
+    }
+
+    void CheckTutorialWallCollisions()
+    {
+        foreach (TutorialWall wall
+            in allTutorialWalls)
+        {
+            if (wall == null)
+                continue;
+
+            CheckTutorialPoint(
+                frontPoint,
+                wall
+            );
+
+            CheckTutorialPoint(
+                centerPoint,
+                wall
+            );
+
+            CheckTutorialPoint(
+                rearPoint,
+                wall
+            );
+        }
+    }
+
+    void CheckTutorialPoint(
+    Transform point,
+    TutorialWall wall)
+    {
+        Vector3 localPoint =
+            wall.transform.InverseTransformPoint(
+                point.position
+            );
+
+        Vector3 ext =
+            wall.Extents;
+
+        bool inside =
+            Mathf.Abs(localPoint.x) <= ext.x
+            &&
+            Mathf.Abs(localPoint.y) <= ext.y
+            &&
+            Mathf.Abs(localPoint.z) <= ext.z;
+
+        if (!inside)
+            return;
+
+        float dx =
+            ext.x - Mathf.Abs(localPoint.x);
+
+        float dy =
+            ext.y - Mathf.Abs(localPoint.y);
+
+        float dz =
+            ext.z - Mathf.Abs(localPoint.z);
+
+        float minPen =
+            Mathf.Min(dx, dy, dz);
+
+        Vector3 localNormal =
+            Vector3.zero;
+
+        if (minPen == dx)
+        {
+            localNormal =
+                localPoint.x > 0
+                ? Vector3.right
+                : Vector3.left;
+        }
+        else if (minPen == dy)
+        {
+            localNormal =
+                localPoint.y > 0
+                ? Vector3.up
+                : Vector3.down;
+        }
+        else
+        {
+            localNormal =
+                localPoint.z > 0
+                ? Vector3.forward
+                : Vector3.back;
+        }
+
+        Vector3 worldNormal =
+            wall.transform.TransformDirection(
+                localNormal
+            );
+
+        float safety =
+            0.05f;
+
+        vehicle.transform.position +=
+            worldNormal
+            * (minPen + safety);
+
+        float vn =
+            Vector3.Dot(
+                vehicle.velocity,
+                worldNormal
+            );
+
+        if (vn < 0f)
+        {
+            vehicle.velocity -=
+                worldNormal * vn;
         }
     }
 
