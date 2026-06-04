@@ -21,6 +21,8 @@ public class BrickWall : MonoBehaviour
 
     public float spacing = 0.02f;
 
+
+
     [Header("Generation")]
 
     public bool generateOnStart = true;
@@ -156,6 +158,12 @@ public class BrickWall : MonoBehaviour
 
             Rigidbody rb =
                 brick.GetComponent<Rigidbody>();
+
+
+            if (rb != null)
+            {
+                rb.useGravity = true;
+            }
 
             if (rb != null)
             {
