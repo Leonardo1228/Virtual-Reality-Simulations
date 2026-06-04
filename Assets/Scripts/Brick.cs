@@ -1,16 +1,5 @@
 using UnityEngine;
 
-public class Brick : SimulationBody
+public class Brick : MonoBehaviour
 {
-    public void ApplyImpact(
-        Vector3 impact)
-    {
-        useGravity = true;
-
-        AddForce(impact);
-
-        AddTorque(
-            Random.onUnitSphere * 500f
-        );
-    }
 }

@@ -10,7 +10,7 @@ public class VehicleCollision : MonoBehaviour
         new List<HeavyWall>();
 
     public static List<TutorialWall> allTutorialWalls =
-    new List<TutorialWall>();
+        new List<TutorialWall>();
 
     [Header("Collision Points")]
 
@@ -22,7 +22,17 @@ public class VehicleCollision : MonoBehaviour
 
     public float pointRadius = 1.2f;
 
-    public float impactMultiplier = 100f;
+    public float impactMultiplier = 5f;
+
+    [Header("Vehicle Models")]
+
+    public Transform bodyModel;
+
+    public Transform frontWheelModel;
+
+    public Transform rearWheelModel;
+
+    public LayerMask BrickLayer;
 
     private VehicleController vehicle;
 
@@ -34,35 +44,98 @@ public class VehicleCollision : MonoBehaviour
 
     void Update()
     {
-        CheckBrickWallCollisions();
+        if (frontWheelModel != null)
+        {
+            CheckBrickContacts(
+                GetModelBounds(
+                    frontWheelModel
+                )
+            );
+        }
+
+        if (bodyModel != null)
+        {
+            CheckBrickContacts(
+                GetModelBounds(
+                    bodyModel
+                )
+            );
+        }
+
+        if (rearWheelModel != null)
+        {
+            CheckBrickContacts(
+                GetModelBounds(
+                    rearWheelModel
+                )
+            );
+        }
 
         CheckHeavyWallCollisions();
 
         CheckTutorialWallCollisions();
     }
 
-    void CheckBrickWallCollisions()
+    Bounds GetModelBounds(
+        Transform model)
     {
-        foreach (BrickWall wall in allBrickWalls)
+        Renderer[] renderers =
+            model.GetComponentsInChildren<
+                Renderer>();
+
+        if (renderers.Length == 0)
         {
-            if (wall == null)
+            return new Bounds(
+                model.position,
+                Vector3.one
+            );
+        }
+
+        Bounds bounds =
+            renderers[0].bounds;
+
+        foreach (Renderer r in renderers)
+        {
+            bounds.Encapsulate(
+                r.bounds
+            );
+        }
+
+        return bounds;
+    }
+
+    void CheckBrickContacts(
+        Bounds vehicleBounds)
+    {
+        Collider[] hits =
+            Physics.OverlapBox(
+                vehicleBounds.center,
+                vehicleBounds.extents,
+                Quaternion.identity,
+                BrickLayer
+            );
+
+        foreach (Collider hit in hits)
+        {
+            Rigidbody rb =
+                hit.GetComponent<Rigidbody>();
+
+            if (rb == null)
                 continue;
 
-            bool collision =
-                CheckWallPoint(frontPoint, wall)
-                || CheckWallPoint(centerPoint, wall)
-                || CheckWallPoint(rearPoint, wall);
-
-            if (!collision)
-                continue;
+            if (rb.isKinematic)
+            {
+                rb.isKinematic = false;
+            }
 
             Vector3 impact =
                 vehicle.velocity
                 * vehicle.mass
-                * impactMultiplier;
+                * 0.02f;
 
-            wall.ReceiveImpact(
-                impact
+            rb.AddForce(
+                impact,
+                ForceMode.Impulse
             );
         }
     }
@@ -74,6 +147,9 @@ public class VehicleCollision : MonoBehaviour
             if (wall == null)
                 continue;
 
+            Vector3 originalVelocity =
+                vehicle.velocity;
+
             bool collision =
                 CheckCollision(frontPoint, wall)
                 || CheckCollision(centerPoint, wall)
@@ -82,8 +158,18 @@ public class VehicleCollision : MonoBehaviour
             if (!collision)
                 continue;
 
+            float direction =
+                Mathf.Sign(
+                    Vector3.Dot(
+                        originalVelocity,
+                        vehicle.transform.forward
+                    )
+                );
+
             Vector3 impact =
-                vehicle.velocity
+                vehicle.transform.forward
+                * direction
+                * originalVelocity.magnitude
                 * vehicle.mass
                 * impactMultiplier;
 
@@ -120,8 +206,8 @@ public class VehicleCollision : MonoBehaviour
     }
 
     void CheckTutorialPoint(
-    Transform point,
-    TutorialWall wall)
+        Transform point,
+        TutorialWall wall)
     {
         Bounds bounds =
             wall.GetWorldBounds();
@@ -194,26 +280,6 @@ public class VehicleCollision : MonoBehaviour
         }
     }
 
-    bool CheckWallPoint(
-        Transform point,
-        BrickWall wall)
-    {
-        float wallRadius =
-            Mathf.Max(
-                wall.transform.localScale.x,
-                wall.transform.localScale.y
-            ) * 0.5f;
-
-        float distance =
-            Vector3.Distance(
-                point.position,
-                wall.transform.position
-            );
-
-        return distance <
-            pointRadius + wallRadius;
-    }
-
     bool CheckCollision(
         Transform point,
         SimulationBody body)
@@ -240,15 +306,48 @@ public class VehicleCollision : MonoBehaviour
                 normal
                 * penetration;
 
-            vehicle.velocity =
-                Vector3.Reflect(
-                    vehicle.velocity,
-                    normal
-                ) * 0.2f;
-
             return true;
         }
 
         return false;
+    }
+
+    void DrawBounds(
+        Transform model,
+        Color color)
+    {
+        if (model == null)
+            return;
+
+        Bounds bounds =
+            GetModelBounds(
+                model
+            );
+
+        Gizmos.color =
+            color;
+
+        Gizmos.DrawWireCube(
+            bounds.center,
+            bounds.size
+        );
+    }
+
+    void OnDrawGizmos()
+    {
+        DrawBounds(
+            frontWheelModel,
+            Color.green
+        );
+
+        DrawBounds(
+            bodyModel,
+            Color.yellow
+        );
+
+        DrawBounds(
+            rearWheelModel,
+            Color.red
+        );
     }
 }
