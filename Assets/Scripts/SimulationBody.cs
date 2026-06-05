@@ -18,7 +18,11 @@ public class SimulationBody : MonoBehaviour
     public bool useGravity = true;
 
     public Vector3 gravity =
-        new Vector3(0f, -9.81f, 0f);
+        new Vector3(
+            0f,
+            -9.81f,
+            0f
+        );
 
     [Header("Linear Motion")]
 
@@ -40,7 +44,8 @@ public class SimulationBody : MonoBehaviour
 
     protected virtual void Update()
     {
-        float dt = Time.deltaTime;
+        float dt =
+            Time.deltaTime;
 
         UpdateRadius();
 
@@ -54,7 +59,6 @@ public class SimulationBody : MonoBehaviour
         Vector3 scale =
             transform.localScale;
 
-        // Más adecuado para muros y vehículos
         radius =
             Mathf.Max(
                 scale.x,
@@ -63,7 +67,8 @@ public class SimulationBody : MonoBehaviour
             ) * 0.5f;
     }
 
-    protected virtual void Integrate(float dt)
+    protected virtual void Integrate(
+        float dt)
     {
         Vector3 gravityForce =
             Vector3.zero;
@@ -87,19 +92,26 @@ public class SimulationBody : MonoBehaviour
         velocity +=
             acceleration * dt;
 
-        // Fricción solo cuando toca suelo
-        if (transform.position.y <= 0.01f)
+        if (
+            transform.position.y
+            <= GroundHeight()
+            + 0.01f
+        )
         {
-            ApplyGroundFriction(dt);
+            ApplyGroundFriction(
+                dt
+            );
         }
 
         angularAcceleration =
             accumulatedTorque / mass;
 
         angularVelocity +=
-            angularAcceleration * dt;
+            angularAcceleration
+            * dt;
 
-        angularVelocity *= rotationalDrag;
+        angularVelocity *=
+            rotationalDrag;
 
         transform.Rotate(
             angularVelocity * dt,
@@ -113,7 +125,15 @@ public class SimulationBody : MonoBehaviour
             Vector3.zero;
     }
 
-    void ApplyGroundFriction(float dt)
+    float GroundHeight()
+    {
+        return
+            transform.localScale.y
+            * 0.5f;
+    }
+
+    void ApplyGroundFriction(
+        float dt)
     {
         Vector3 horizontal =
             new Vector3(
@@ -122,7 +142,8 @@ public class SimulationBody : MonoBehaviour
                 velocity.z
             );
 
-        float friction = 4f;
+        float friction =
+            4f;
 
         horizontal =
             Vector3.Lerp(
@@ -138,7 +159,8 @@ public class SimulationBody : MonoBehaviour
             horizontal.z;
     }
 
-    protected virtual void Move(float dt)
+    protected virtual void Move(
+        float dt)
     {
         transform.position +=
             velocity * dt;
@@ -148,12 +170,15 @@ public class SimulationBody : MonoBehaviour
 
     void CheckGroundCollision()
     {
-        float groundHeight = 0f;
+        float groundHeight =
+            GroundHeight();
 
         Vector3 pos =
             transform.position;
 
-        if (pos.y < groundHeight)
+        if (
+            pos.y < groundHeight
+        )
         {
             pos.y =
                 groundHeight;
@@ -161,21 +186,29 @@ public class SimulationBody : MonoBehaviour
             transform.position =
                 pos;
 
-            if (velocity.y < 0f)
+            if (
+                velocity.y < 0f
+            )
             {
                 velocity.y *=
                     -restitution;
 
-                if (Mathf.Abs(
-                    velocity.y)
-                    < 0.5f)
+                if (
+                    Mathf.Abs(
+                        velocity.y
+                    ) < 0.5f
+                )
                 {
-                    velocity.y = 0f;
+                    velocity.y =
+                        0f;
                 }
             }
 
-            velocity.x *= 0.92f;
-            velocity.z *= 0.92f;
+            velocity.x *=
+                0.92f;
+
+            velocity.z *=
+                0.92f;
 
             angularVelocity *=
                 0.96f;

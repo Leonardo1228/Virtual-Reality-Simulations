@@ -4,27 +4,50 @@ public class HeavyWall : SimulationBody
 {
     [Header("Wall")]
 
-    public float resistanceForce = 50000f;
+    public float resistanceForce =
+        120000f;
 
-    public float bounceDamping = 0.25f;
+    public float bounceDamping =
+        0.25f;
 
-    public float torqueMultiplier = 0.02f;
+    public float torqueMultiplier =
+        0.02f;
 
-    public bool startWithGravity = true;
+    public bool startWithGravity =
+        true;
+
+    void Reset()
+    {
+        mass = 10000f;
+
+        drag = 0.02f;
+
+        restitution = 0.05f;
+    }
 
     void OnEnable()
     {
-        VehicleCollision.allWalls.Add(this);
+        VehicleCollision.allWalls.Add(
+            this
+        );
     }
 
     void OnDisable()
     {
-        VehicleCollision.allWalls.Remove(this);
+        VehicleCollision.allWalls.Remove(
+            this
+        );
     }
 
     void Start()
     {
-        useGravity = startWithGravity;
+        useGravity =
+            startWithGravity;
+
+        if (mass <= 0f)
+        {
+            mass = 10000f;
+        }
     }
 
     protected override void Update()
@@ -39,28 +62,34 @@ public class HeavyWall : SimulationBody
         float impact =
             impactForce.magnitude;
 
-        // Muro demasiado fuerte
-        if (impact < resistanceForce)
-        {
-            Vector3 normal =
-                (vehicle.transform.position
-                - transform.position)
-                .normalized;
+        Vector3 normal =
+            (
+                vehicle.transform.position
+                - transform.position
+            ).normalized;
 
+        // El muro resiste
+        if (
+            impact
+            < resistanceForce
+        )
+        {
             vehicle.Bounce(
                 normal,
                 bounceDamping
             );
 
+            vehicle.RegisterCollision();
+
             return;
         }
 
-        // El muro recibe fuerza
+        // El muro absorbe parte del impacto
         AddForce(
-            impactForce
+            impactForce * 0.75f
         );
 
-        // Comienza a volcarse
+        // Empieza a volcarse
         AddTorque(
             Vector3.Cross(
                 Vector3.up,
@@ -69,5 +98,11 @@ public class HeavyWall : SimulationBody
             * impact
             * torqueMultiplier
         );
+
+        // El coche también pierde energía
+        vehicle.velocity *=
+            0.8f;
+
+        vehicle.RegisterCollision();
     }
 }

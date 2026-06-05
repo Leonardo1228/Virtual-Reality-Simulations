@@ -24,6 +24,12 @@ public class VehicleCollision : MonoBehaviour
 
     public float impactMultiplier = 5f;
 
+    [Header("Brick Settings")]
+
+    public float minimumBreakSpeed = 3f;
+
+    public float brickEnergyLoss = 0.995f;
+
     [Header("Vehicle Models")]
 
     public Transform bodyModel;
@@ -107,6 +113,14 @@ public class VehicleCollision : MonoBehaviour
     void CheckBrickContacts(
         Bounds vehicleBounds)
     {
+        if (
+            vehicle.velocity.magnitude
+            < minimumBreakSpeed
+        )
+        {
+            return;
+        }
+
         Collider[] hits =
             Physics.OverlapBox(
                 vehicleBounds.center,
@@ -115,34 +129,54 @@ public class VehicleCollision : MonoBehaviour
                 BrickLayer
             );
 
+        float maxDistance =
+            vehicleBounds.extents.magnitude;
+
         foreach (Collider hit in hits)
         {
-            Rigidbody rb =
-                hit.GetComponent<Rigidbody>();
+            Brick brick =
+                hit.GetComponent<Brick>();
 
-            if (rb == null)
+            if (brick == null)
                 continue;
 
-            if (rb.isKinematic)
-            {
-                rb.isKinematic = false;
-            }
+            if (brick.activated)
+                continue;
+
+            float distance =
+                Vector3.Distance(
+                    vehicleBounds.center,
+                    brick.transform.position
+                );
+
+            float strength =
+                1f -
+                Mathf.Clamp01(
+                    distance /
+                    maxDistance
+                );
 
             Vector3 impact =
                 vehicle.velocity
                 * vehicle.mass
-                * 0.02f;
+                * impactMultiplier
+                * strength;
 
-            rb.AddForce(
-                impact,
-                ForceMode.Impulse
+            brick.Activate(
+                impact
             );
+
+            vehicle.velocity *=
+                brickEnergyLoss;
         }
     }
 
     void CheckHeavyWallCollisions()
     {
-        foreach (HeavyWall wall in allWalls)
+        foreach (
+            HeavyWall wall
+            in allWalls
+        )
         {
             if (wall == null)
                 continue;
@@ -151,9 +185,18 @@ public class VehicleCollision : MonoBehaviour
                 vehicle.velocity;
 
             bool collision =
-                CheckCollision(frontPoint, wall)
-                || CheckCollision(centerPoint, wall)
-                || CheckCollision(rearPoint, wall);
+                CheckCollision(
+                    frontPoint,
+                    wall
+                )
+                || CheckCollision(
+                    centerPoint,
+                    wall
+                )
+                || CheckCollision(
+                    rearPoint,
+                    wall
+                );
 
             if (!collision)
                 continue;
@@ -182,8 +225,10 @@ public class VehicleCollision : MonoBehaviour
 
     void CheckTutorialWallCollisions()
     {
-        foreach (TutorialWall wall
-            in allTutorialWalls)
+        foreach (
+            TutorialWall wall
+            in allTutorialWalls
+        )
         {
             if (wall == null)
                 continue;
@@ -228,16 +273,23 @@ public class VehicleCollision : MonoBehaviour
             p - center;
 
         float dx =
-            ext.x - Mathf.Abs(local.x);
+            ext.x -
+            Mathf.Abs(local.x);
 
         float dy =
-            ext.y - Mathf.Abs(local.y);
+            ext.y -
+            Mathf.Abs(local.y);
 
         float dz =
-            ext.z - Mathf.Abs(local.z);
+            ext.z -
+            Mathf.Abs(local.z);
 
         float penetration =
-            Mathf.Min(dx, dy, dz);
+            Mathf.Min(
+                dx,
+                dy,
+                dz
+            );
 
         Vector3 normal;
 
@@ -292,7 +344,8 @@ public class VehicleCollision : MonoBehaviour
             direction.magnitude;
 
         float minDistance =
-            pointRadius + body.radius;
+            pointRadius
+            + body.radius;
 
         if (distance < minDistance)
         {
@@ -300,11 +353,24 @@ public class VehicleCollision : MonoBehaviour
                 direction.normalized;
 
             float penetration =
-                minDistance - distance;
+                minDistance
+                - distance;
 
             vehicle.transform.position +=
                 normal
                 * penetration;
+
+            float vn =
+                Vector3.Dot(
+                    vehicle.velocity,
+                    normal
+                );
+
+            if (vn < 0f)
+            {
+                vehicle.velocity -=
+                    normal * vn;
+            }
 
             return true;
         }

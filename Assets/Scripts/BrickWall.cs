@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public class BrickWall : MonoBehaviour
 {
@@ -21,13 +22,33 @@ public class BrickWall : MonoBehaviour
 
     public float spacing = 0.02f;
 
-
-
     [Header("Generation")]
 
     public bool generateOnStart = true;
 
     public bool clearFirst = true;
+
+    private readonly List<Brick> bricks =
+        new List<Brick>();
+
+    void OnEnable()
+    {
+        if (!VehicleCollision
+            .allBrickWalls
+            .Contains(this))
+        {
+            VehicleCollision
+                .allBrickWalls
+                .Add(this);
+        }
+    }
+
+    void OnDisable()
+    {
+        VehicleCollision
+            .allBrickWalls
+            .Remove(this);
+    }
 
     void Start()
     {
@@ -37,34 +58,17 @@ public class BrickWall : MonoBehaviour
         }
     }
 
-#if UNITY_EDITOR
-
-    void OnValidate()
-    {
-        if (!Application.isPlaying)
-        {
-            transform.localScale =
-                Vector3.one;
-        }
-    }
-
-#endif
-
     public void GenerateWall()
     {
         if (brickPrefab == null)
-        {
-            Debug.LogWarning(
-                "Brick Prefab missing."
-            );
-
             return;
-        }
 
         if (clearFirst)
         {
             ClearWall();
         }
+
+        bricks.Clear();
 
         float wallWidth =
             width *
@@ -75,6 +79,11 @@ public class BrickWall : MonoBehaviour
             - new Vector3(
                 wallWidth * 0.5f,
                 0f,
+                0f
+            )
+            + new Vector3(
+                0f,
+                brickSize.y * 0.5f,
                 0f
             );
 
@@ -114,23 +123,28 @@ public class BrickWall : MonoBehaviour
                         0f
                     );
 
-                GameObject brick =
+                GameObject obj =
                     Instantiate(
                         brickPrefab,
                         pos,
-                        Quaternion.identity,
+                        transform.rotation,
                         transform
                     );
 
-                brick.transform.localScale =
+                obj.transform.localScale =
                     brickSize;
 
-                Rigidbody rb =
-                    brick.GetComponent<Rigidbody>();
+                Brick brick =
+                    obj.GetComponent<Brick>();
 
-                if (rb != null)
+                if (brick != null)
                 {
-                    rb.isKinematic = true;
+                    brick.useGravity =
+                        false;
+
+                    bricks.Add(
+                        brick
+                    );
                 }
             }
         }
@@ -139,14 +153,19 @@ public class BrickWall : MonoBehaviour
     public void BreakWall(
         Vector3 impactPoint,
         Vector3 impactForce,
-        float radius = 3f
-    )
+        float radius)
     {
-        Brick[] bricks =
-            GetComponentsInChildren<Brick>();
-
-        foreach (Brick brick in bricks)
+        foreach (
+            Brick brick
+            in bricks
+        )
         {
+            if (brick == null)
+                continue;
+
+            if (brick.activated)
+                continue;
+
             float distance =
                 Vector3.Distance(
                     brick.transform.position,
@@ -156,24 +175,16 @@ public class BrickWall : MonoBehaviour
             if (distance > radius)
                 continue;
 
-            Rigidbody rb =
-                brick.GetComponent<Rigidbody>();
-
-
-            if (rb != null)
-            {
-                rb.useGravity = true;
-            }
-
-            if (rb != null)
-            {
-                rb.isKinematic = false;
-
-                rb.AddForce(
-                    impactForce,
-                    ForceMode.Impulse
+            float strength =
+                1f -
+                Mathf.Clamp01(
+                    distance / radius
                 );
-            }
+
+            brick.Activate(
+                impactForce
+                * strength
+            );
         }
     }
 
@@ -184,11 +195,17 @@ public class BrickWall : MonoBehaviour
 
         float wallWidth =
             width *
-            (brickSize.x + spacing);
+            (
+                brickSize.x
+                + spacing
+            );
 
         float wallHeight =
             height *
-            (brickSize.y + spacing);
+            (
+                brickSize.y
+                + spacing
+            );
 
         Vector3 center =
             transform.position
@@ -221,7 +238,8 @@ public class BrickWall : MonoBehaviour
             if (!Application.isPlaying)
             {
                 DestroyImmediate(
-                    transform.GetChild(0)
+                    transform
+                    .GetChild(0)
                     .gameObject
                 );
             }
@@ -229,7 +247,8 @@ public class BrickWall : MonoBehaviour
 #endif
             {
                 Destroy(
-                    transform.GetChild(0)
+                    transform
+                    .GetChild(0)
                     .gameObject
                 );
             }

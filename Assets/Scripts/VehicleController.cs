@@ -10,17 +10,32 @@ public class VehicleController : SimulationBody
 
     public float maxSpeed = 35f;
 
+    [Header("Collision")]
+
+    public float collisionRecoveryTime = 0.2f;
+
+    private float collisionTimer;
+
     private ArduinoInput arduinoInput;
 
     private float moveInput;
 
     private float steerInput;
 
+    public float MoveInput =>
+        moveInput;
 
+    public float SteerInput =>
+        steerInput;
 
-    public float MoveInput => moveInput;
+    void Reset()
+    {
+        mass = 1200f;
 
-    public float SteerInput => steerInput;
+        drag = 0.1f;
+
+        restitution = 0.05f;
+    }
 
     protected override void Update()
     {
@@ -32,7 +47,19 @@ public class VehicleController : SimulationBody
 
         ReadInput();
 
+        if (collisionTimer > 0f)
+        {
+            collisionTimer -=
+                Time.deltaTime;
+        }
+
         base.Update();
+    }
+
+    public void RegisterCollision()
+    {
+        collisionTimer =
+            collisionRecoveryTime;
     }
 
     void ReadInput()
@@ -52,10 +79,14 @@ public class VehicleController : SimulationBody
         else
         {
             moveInput =
-                Input.GetAxis("Vertical");
+                Input.GetAxis(
+                    "Vertical"
+                );
 
             steerInput =
-                Input.GetAxis("Horizontal");
+                Input.GetAxis(
+                    "Horizontal"
+                );
         }
 
         moveInput =
@@ -84,11 +115,17 @@ public class VehicleController : SimulationBody
                 velocity.z
             );
 
+        float accelerationFactor =
+            collisionTimer > 0f
+            ? 0.25f
+            : 1f;
+
         horizontalVelocity =
             Vector3.Lerp(
                 horizontalVelocity,
                 targetVelocity,
                 engineForce
+                * accelerationFactor
                 * Time.deltaTime
             );
 
