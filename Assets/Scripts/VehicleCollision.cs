@@ -125,7 +125,7 @@ public class VehicleCollision : MonoBehaviour
             Physics.OverlapBox(
                 vehicleBounds.center,
                 vehicleBounds.extents,
-                Quaternion.identity,
+                transform.rotation,
                 BrickLayer
             );
 

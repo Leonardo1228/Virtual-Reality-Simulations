@@ -129,7 +129,7 @@ public class SimulationBody : MonoBehaviour
     {
         return
             transform.localScale.y
-            * 0.5f;
+            * 0.2f;
     }
 
     void ApplyGroundFriction(
