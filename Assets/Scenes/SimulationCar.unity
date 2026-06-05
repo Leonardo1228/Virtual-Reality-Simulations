@@ -131,6 +131,7 @@ GameObject:
   - component: {fileID: 37482033}
   - component: {fileID: 37482032}
   - component: {fileID: 37482030}
+  - component: {fileID: 37482035}
   m_Layer: 0
   m_Name: HeavyWall
   m_TagString: Untagged
@@ -150,7 +151,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eb43d7ef2bf181449957e19ba362f43e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HeavyWall
-  mass: 10000
+  mass: 1e+9
   drag: 0.02
   restitution: 0.05
   radius: 0
@@ -161,7 +162,7 @@ MonoBehaviour:
   angularVelocity: {x: 0, y: 0, z: 0}
   angularAcceleration: {x: 0, y: 0, z: 0}
   rotationalDrag: 0.96
-  resistanceForce: 120000
+  resistanceForce: 1.2e+9
   bounceDamping: 0.25
   torqueMultiplier: 0.02
   startWithGravity: 1
@@ -237,6 +238,27 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &37482035
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 37482029}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1, y: 0.99999994, z: 1}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1001 &205591021
 PrefabInstance:
   m_ObjectHideFlags: 0
