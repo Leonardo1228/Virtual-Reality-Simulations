@@ -12,31 +12,27 @@ public class VehicleCollision : MonoBehaviour
     public static List<TutorialWall> allTutorialWalls =
         new List<TutorialWall>();
 
-    [Header("Collision Points")]
+    [Header("Vehicle Sensors")]
 
-    public Transform frontPoint;
+    public CollisionSensor frontWheel =
+        new CollisionSensor();
 
-    public Transform centerPoint;
+    public CollisionSensor body =
+        new CollisionSensor();
 
-    public Transform rearPoint;
-
-    public float pointRadius = 1.2f;
-
-    public float impactMultiplier = 5f;
+    public CollisionSensor rearWheel =
+        new CollisionSensor();
 
     [Header("Brick Settings")]
 
-    public float minimumBreakSpeed = 3f;
+    public float minimumBreakSpeed =
+        3f;
 
-    public float brickEnergyLoss = 0.995f;
+    public float brickEnergyLoss =
+        0.995f;
 
-    [Header("Vehicle Models")]
-
-    public Transform bodyModel;
-
-    public Transform frontWheelModel;
-
-    public Transform rearWheelModel;
+    public float impactMultiplier =
+        5f;
 
     public LayerMask BrickLayer;
 
@@ -50,69 +46,32 @@ public class VehicleCollision : MonoBehaviour
 
     void Update()
     {
-        if (frontWheelModel != null)
-        {
-            CheckBrickContacts(
-                GetModelBounds(
-                    frontWheelModel
-                )
-            );
-        }
+        CheckBrickSensor(
+            frontWheel
+        );
 
-        if (bodyModel != null)
-        {
-            CheckBrickContacts(
-                GetModelBounds(
-                    bodyModel
-                )
-            );
-        }
+        CheckBrickSensor(
+            body
+        );
 
-        if (rearWheelModel != null)
-        {
-            CheckBrickContacts(
-                GetModelBounds(
-                    rearWheelModel
-                )
-            );
-        }
+        CheckBrickSensor(
+            rearWheel
+        );
 
         CheckHeavyWallCollisions();
 
         CheckTutorialWallCollisions();
     }
 
-    Bounds GetModelBounds(
-        Transform model)
+    void CheckBrickSensor(
+        CollisionSensor sensor)
     {
-        Renderer[] renderers =
-            model.GetComponentsInChildren<
-                Renderer>();
+        if (!sensor.enabled)
+            return;
 
-        if (renderers.Length == 0)
-        {
-            return new Bounds(
-                model.position,
-                Vector3.one
-            );
-        }
+        if (sensor.anchor == null)
+            return;
 
-        Bounds bounds =
-            renderers[0].bounds;
-
-        foreach (Renderer r in renderers)
-        {
-            bounds.Encapsulate(
-                r.bounds
-            );
-        }
-
-        return bounds;
-    }
-
-    void CheckBrickContacts(
-        Bounds vehicleBounds)
-    {
         if (
             vehicle.velocity.magnitude
             < minimumBreakSpeed
@@ -121,16 +80,15 @@ public class VehicleCollision : MonoBehaviour
             return;
         }
 
+        Vector3 center =
+            sensor.WorldPosition();
+
         Collider[] hits =
-            Physics.OverlapBox(
-                vehicleBounds.center,
-                vehicleBounds.extents,
-                transform.rotation,
+            Physics.OverlapSphere(
+                center,
+                sensor.radius,
                 BrickLayer
             );
-
-        float maxDistance =
-            vehicleBounds.extents.magnitude;
 
         foreach (Collider hit in hits)
         {
@@ -145,7 +103,7 @@ public class VehicleCollision : MonoBehaviour
 
             float distance =
                 Vector3.Distance(
-                    vehicleBounds.center,
+                    center,
                     brick.transform.position
                 );
 
@@ -153,7 +111,7 @@ public class VehicleCollision : MonoBehaviour
                 1f -
                 Mathf.Clamp01(
                     distance /
-                    maxDistance
+                    sensor.radius
                 );
 
             Vector3 impact =
@@ -185,16 +143,16 @@ public class VehicleCollision : MonoBehaviour
                 vehicle.velocity;
 
             bool collision =
-                CheckCollision(
-                    frontPoint,
+                CheckWallSensor(
+                    frontWheel,
                     wall
                 )
-                || CheckCollision(
-                    centerPoint,
+                || CheckWallSensor(
+                    body,
                     wall
                 )
-                || CheckCollision(
-                    rearPoint,
+                || CheckWallSensor(
+                    rearWheel,
                     wall
                 );
 
@@ -223,6 +181,59 @@ public class VehicleCollision : MonoBehaviour
         }
     }
 
+    bool CheckWallSensor(
+        CollisionSensor sensor,
+        SimulationBody wall)
+    {
+        if (!sensor.enabled)
+            return false;
+
+        if (sensor.anchor == null)
+            return false;
+
+        Vector3 center =
+            sensor.WorldPosition();
+
+        Vector3 direction =
+            center
+            - wall.transform.position;
+
+        float distance =
+            direction.magnitude;
+
+        float minDistance =
+            sensor.radius
+            + wall.radius;
+
+        if (distance >= minDistance)
+            return false;
+
+        Vector3 normal =
+            direction.normalized;
+
+        float penetration =
+            minDistance
+            - distance;
+
+        vehicle.transform.position +=
+            normal
+            * penetration;
+
+        float vn =
+            Vector3.Dot(
+                vehicle.velocity,
+                normal
+            );
+
+        if (vn < 0f)
+        {
+            vehicle.velocity -=
+                normal * vn;
+        }
+
+        return true;
+    }
+
     void CheckTutorialWallCollisions()
     {
         foreach (
@@ -233,91 +244,83 @@ public class VehicleCollision : MonoBehaviour
             if (wall == null)
                 continue;
 
-            CheckTutorialPoint(
-                frontPoint,
+            CheckTutorialSensor(
+                frontWheel,
                 wall
             );
 
-            CheckTutorialPoint(
-                centerPoint,
+            CheckTutorialSensor(
+                body,
                 wall
             );
 
-            CheckTutorialPoint(
-                rearPoint,
+            CheckTutorialSensor(
+                rearWheel,
                 wall
             );
         }
     }
 
-    void CheckTutorialPoint(
-        Transform point,
+    void CheckTutorialSensor(
+        CollisionSensor sensor,
         TutorialWall wall)
     {
+        if (!sensor.enabled)
+            return;
+
+        if (sensor.anchor == null)
+            return;
+
         Bounds bounds =
             wall.GetWorldBounds();
 
-        Vector3 p =
-            point.position;
-
-        if (!bounds.Contains(p))
-            return;
-
         Vector3 center =
-            bounds.center;
+            sensor.WorldPosition();
 
-        Vector3 ext =
-            bounds.extents;
-
-        Vector3 local =
-            p - center;
-
-        float dx =
-            ext.x -
-            Mathf.Abs(local.x);
-
-        float dy =
-            ext.y -
-            Mathf.Abs(local.y);
-
-        float dz =
-            ext.z -
-            Mathf.Abs(local.z);
-
-        float penetration =
-            Mathf.Min(
-                dx,
-                dy,
-                dz
+        Vector3 closest =
+            bounds.ClosestPoint(
+                center
             );
 
-        Vector3 normal;
+        float distance =
+            Vector3.Distance(
+                center,
+                closest
+            );
 
-        if (penetration == dx)
+        if (
+            distance >
+            sensor.radius
+        )
+        {
+            return;
+        }
+
+        Vector3 normal =
+            (
+                center
+                - closest
+            ).normalized;
+
+        if (
+            normal.sqrMagnitude
+            < 0.001f
+        )
         {
             normal =
-                local.x > 0f
-                ? Vector3.right
-                : Vector3.left;
+                -vehicle.transform.forward;
         }
-        else if (penetration == dy)
-        {
-            normal =
-                local.y > 0f
-                ? Vector3.up
-                : Vector3.down;
-        }
-        else
-        {
-            normal =
-                local.z > 0f
-                ? Vector3.forward
-                : Vector3.back;
-        }
+
+        float penetration =
+            sensor.radius
+            - distance;
 
         vehicle.transform.position +=
             normal
-            * (penetration + 0.1f);
+            * (
+                penetration
+                + 0.05f
+            );
 
         float vn =
             Vector3.Dot(
@@ -332,87 +335,42 @@ public class VehicleCollision : MonoBehaviour
         }
     }
 
-    bool CheckCollision(
-        Transform point,
-        SimulationBody body)
-    {
-        Vector3 direction =
-            point.position
-            - body.transform.position;
-
-        float distance =
-            direction.magnitude;
-
-        float minDistance =
-            pointRadius
-            + body.radius;
-
-        if (distance < minDistance)
-        {
-            Vector3 normal =
-                direction.normalized;
-
-            float penetration =
-                minDistance
-                - distance;
-
-            vehicle.transform.position +=
-                normal
-                * penetration;
-
-            float vn =
-                Vector3.Dot(
-                    vehicle.velocity,
-                    normal
-                );
-
-            if (vn < 0f)
-            {
-                vehicle.velocity -=
-                    normal * vn;
-            }
-
-            return true;
-        }
-
-        return false;
-    }
-
-    void DrawBounds(
-        Transform model,
+    void DrawSensor(
+        CollisionSensor sensor,
         Color color)
     {
-        if (model == null)
+        if (
+            sensor == null
+            || !sensor.enabled
+            || sensor.anchor == null
+        )
+        {
             return;
-
-        Bounds bounds =
-            GetModelBounds(
-                model
-            );
+        }
 
         Gizmos.color =
             color;
 
-        Gizmos.DrawWireCube(
-            bounds.center,
-            bounds.size
+        Gizmos.DrawWireSphere(
+            sensor.WorldPosition(),
+            sensor.radius
         );
     }
 
     void OnDrawGizmos()
     {
-        DrawBounds(
-            frontWheelModel,
+        DrawSensor(
+            frontWheel,
             Color.green
         );
 
-        DrawBounds(
-            bodyModel,
+        DrawSensor(
+            body,
             Color.yellow
         );
 
-        DrawBounds(
-            rearWheelModel,
+        DrawSensor(
+            rearWheel,
             Color.red
         );
     }

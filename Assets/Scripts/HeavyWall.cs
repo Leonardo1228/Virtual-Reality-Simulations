@@ -19,9 +19,7 @@ public class HeavyWall : SimulationBody
     void Reset()
     {
         mass = 10000f;
-
         drag = 0.02f;
-
         restitution = 0.05f;
     }
 
@@ -50,11 +48,6 @@ public class HeavyWall : SimulationBody
         }
     }
 
-    protected override void Update()
-    {
-        base.Update();
-    }
-
     public void ReceiveImpact(
         Vector3 impactForce,
         VehicleController vehicle)
@@ -68,7 +61,6 @@ public class HeavyWall : SimulationBody
                 - transform.position
             ).normalized;
 
-        // El muro resiste
         if (
             impact
             < resistanceForce
@@ -84,12 +76,10 @@ public class HeavyWall : SimulationBody
             return;
         }
 
-        // El muro absorbe parte del impacto
         AddForce(
             impactForce * 0.75f
         );
 
-        // Empieza a volcarse
         AddTorque(
             Vector3.Cross(
                 Vector3.up,
@@ -99,7 +89,6 @@ public class HeavyWall : SimulationBody
             * torqueMultiplier
         );
 
-        // El coche también pierde energía
         vehicle.velocity *=
             0.8f;
 

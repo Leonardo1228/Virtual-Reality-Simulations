@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 7450295531470236558}
   - component: {fileID: 3208538390777373121}
   - component: {fileID: 6220495909852013616}
-  - component: {fileID: -8241635737713234716}
+  - component: {fileID: 7238892204107143206}
   m_Layer: 3
   m_Name: Brick
   m_TagString: Untagged
@@ -104,7 +104,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2d71dc4610bcec6458254589de0fb3c3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Brick
-  mass: 100
+  mass: 50
   drag: 0.05
   restitution: 0.25
   radius: 0
@@ -117,7 +117,7 @@ MonoBehaviour:
   rotationalDrag: 0.96
   activated: 0
   damping: 0.995
---- !u!65 &-8241635737713234716
+--- !u!65 &7238892204107143206
 BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
