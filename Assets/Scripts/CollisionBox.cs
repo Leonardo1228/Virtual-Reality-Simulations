@@ -1,17 +1,18 @@
 using UnityEngine;
 
 [System.Serializable]
-public class CollisionSensor 
+public class CollisionBox
 {
     public Transform anchor;
 
     public Vector3 offset;
 
-    public float radius = 1f;
+    public Vector3 size =
+        Vector3.one;
 
     public bool enabled = true;
 
-    public Vector3 WorldPosition()
+    public Vector3 WorldCenter()
     {
         if (anchor == null)
         {
@@ -21,5 +22,15 @@ public class CollisionSensor
         return anchor.TransformPoint(
             offset
         );
+    }
+
+    public Quaternion WorldRotation()
+    {
+        if (anchor == null)
+        {
+            return Quaternion.identity;
+        }
+
+        return anchor.rotation;
     }
 }

@@ -12,16 +12,16 @@ public class VehicleCollision : MonoBehaviour
     public static List<TutorialWall> allTutorialWalls =
         new List<TutorialWall>();
 
-    [Header("Vehicle Sensors")]
+    [Header("Collision Boxes")]
 
-    public CollisionSensor frontWheel =
-        new CollisionSensor();
+    public CollisionBox frontWheel =
+        new CollisionBox();
 
-    public CollisionSensor body =
-        new CollisionSensor();
+    public CollisionBox body =
+        new CollisionBox();
 
-    public CollisionSensor rearWheel =
-        new CollisionSensor();
+    public CollisionBox rearWheel =
+        new CollisionBox();
 
     [Header("Brick Settings")]
 
@@ -46,30 +46,22 @@ public class VehicleCollision : MonoBehaviour
 
     void Update()
     {
-        CheckBrickSensor(
-            frontWheel
-        );
+        CheckBrickBox(frontWheel);
+        CheckBrickBox(body);
+        CheckBrickBox(rearWheel);
 
-        CheckBrickSensor(
-            body
-        );
+        CheckHeavyWalls();
 
-        CheckBrickSensor(
-            rearWheel
-        );
-
-        CheckHeavyWallCollisions();
-
-        CheckTutorialWallCollisions();
+        CheckTutorialWalls();
     }
 
-    void CheckBrickSensor(
-        CollisionSensor sensor)
+    void CheckBrickBox(
+        CollisionBox box)
     {
-        if (!sensor.enabled)
+        if (!box.enabled)
             return;
 
-        if (sensor.anchor == null)
+        if (box.anchor == null)
             return;
 
         if (
@@ -80,13 +72,11 @@ public class VehicleCollision : MonoBehaviour
             return;
         }
 
-        Vector3 center =
-            sensor.WorldPosition();
-
         Collider[] hits =
-            Physics.OverlapSphere(
-                center,
-                sensor.radius,
+            Physics.OverlapBox(
+                box.WorldCenter(),
+                box.size * 0.5f,
+                box.WorldRotation(),
                 BrickLayer
             );
 
@@ -101,24 +91,10 @@ public class VehicleCollision : MonoBehaviour
             if (brick.activated)
                 continue;
 
-            float distance =
-                Vector3.Distance(
-                    center,
-                    brick.transform.position
-                );
-
-            float strength =
-                1f -
-                Mathf.Clamp01(
-                    distance /
-                    sensor.radius
-                );
-
             Vector3 impact =
                 vehicle.velocity
                 * vehicle.mass
-                * impactMultiplier
-                * strength;
+                * impactMultiplier;
 
             brick.Activate(
                 impact
@@ -129,7 +105,7 @@ public class VehicleCollision : MonoBehaviour
         }
     }
 
-    void CheckHeavyWallCollisions()
+    void CheckHeavyWalls()
     {
         foreach (
             HeavyWall wall
@@ -139,19 +115,16 @@ public class VehicleCollision : MonoBehaviour
             if (wall == null)
                 continue;
 
-            Vector3 originalVelocity =
-                vehicle.velocity;
-
             bool collision =
-                CheckWallSensor(
+                CheckHeavyBox(
                     frontWheel,
                     wall
                 )
-                || CheckWallSensor(
+                || CheckHeavyBox(
                     body,
                     wall
                 )
-                || CheckWallSensor(
+                || CheckHeavyBox(
                     rearWheel,
                     wall
                 );
@@ -159,18 +132,8 @@ public class VehicleCollision : MonoBehaviour
             if (!collision)
                 continue;
 
-            float direction =
-                Mathf.Sign(
-                    Vector3.Dot(
-                        originalVelocity,
-                        vehicle.transform.forward
-                    )
-                );
-
             Vector3 impact =
-                vehicle.transform.forward
-                * direction
-                * originalVelocity.magnitude
+                vehicle.velocity
                 * vehicle.mass
                 * impactMultiplier;
 
@@ -181,60 +144,45 @@ public class VehicleCollision : MonoBehaviour
         }
     }
 
-    bool CheckWallSensor(
-        CollisionSensor sensor,
-        SimulationBody wall)
+    bool CheckHeavyBox(
+        CollisionBox box,
+        HeavyWall wall)
     {
-        if (!sensor.enabled)
+        if (!box.enabled)
             return false;
 
-        if (sensor.anchor == null)
+        if (box.anchor == null)
+            return false;
+
+        BoxCollider wallCollider =
+            wall.GetComponent<BoxCollider>();
+
+        if (wallCollider == null)
             return false;
 
         Vector3 center =
-            sensor.WorldPosition();
+            box.WorldCenter();
 
-        Vector3 direction =
-            center
-            - wall.transform.position;
-
-        float distance =
-            direction.magnitude;
-
-        float minDistance =
-            sensor.radius
-            + wall.radius;
-
-        if (distance >= minDistance)
-            return false;
-
-        Vector3 normal =
-            direction.normalized;
-
-        float penetration =
-            minDistance
-            - distance;
-
-        vehicle.transform.position +=
-            normal
-            * penetration;
-
-        float vn =
-            Vector3.Dot(
-                vehicle.velocity,
-                normal
+        Vector3 closest =
+            wallCollider.ClosestPoint(
+                center
             );
 
-        if (vn < 0f)
-        {
-            vehicle.velocity -=
-                normal * vn;
-        }
+        bool inside =
+            Vector3.Distance(
+                center,
+                closest
+            ) < 0.01f;
+
+        if (!inside)
+            return false;
+
+        vehicle.RegisterCollision();
 
         return true;
     }
 
-    void CheckTutorialWallCollisions()
+    void CheckTutorialWalls()
     {
         foreach (
             TutorialWall wall
@@ -244,132 +192,92 @@ public class VehicleCollision : MonoBehaviour
             if (wall == null)
                 continue;
 
-            CheckTutorialSensor(
+            CheckTutorialBox(
                 frontWheel,
                 wall
             );
 
-            CheckTutorialSensor(
+            CheckTutorialBox(
                 body,
                 wall
             );
 
-            CheckTutorialSensor(
+            CheckTutorialBox(
                 rearWheel,
                 wall
             );
         }
     }
 
-    void CheckTutorialSensor(
-        CollisionSensor sensor,
+    void CheckTutorialBox(
+        CollisionBox box,
         TutorialWall wall)
     {
-        if (!sensor.enabled)
+        if (!box.enabled)
             return;
 
-        if (sensor.anchor == null)
+        if (box.anchor == null)
             return;
 
         Bounds bounds =
             wall.GetWorldBounds();
 
-        Vector3 center =
-            sensor.WorldPosition();
-
-        Vector3 closest =
-            bounds.ClosestPoint(
-                center
-            );
-
-        float distance =
-            Vector3.Distance(
-                center,
-                closest
-            );
-
         if (
-            distance >
-            sensor.radius
+            bounds.Contains(
+                box.WorldCenter()
+            )
         )
         {
-            return;
-        }
-
-        Vector3 normal =
-            (
-                center
-                - closest
-            ).normalized;
-
-        if (
-            normal.sqrMagnitude
-            < 0.001f
-        )
-        {
-            normal =
-                -vehicle.transform.forward;
-        }
-
-        float penetration =
-            sensor.radius
-            - distance;
-
-        vehicle.transform.position +=
-            normal
-            * (
-                penetration
-                + 0.05f
-            );
-
-        float vn =
-            Vector3.Dot(
-                vehicle.velocity,
-                normal
-            );
-
-        if (vn < 0f)
-        {
-            vehicle.velocity -=
-                normal * vn;
+            vehicle.velocity *=
+                0.9f;
         }
     }
 
-    void DrawSensor(
-        CollisionSensor sensor,
+    void DrawBox(
+        CollisionBox box,
         Color color)
     {
-        if (
-            sensor == null
-            || !sensor.enabled
-            || sensor.anchor == null
-        )
-        {
+        if (!box.enabled)
             return;
-        }
+
+        if (box.anchor == null)
+            return;
 
         Gizmos.color =
             color;
 
-        Gizmos.DrawWireSphere(
-            sensor.WorldPosition(),
-            sensor.radius
+        Matrix4x4 old =
+            Gizmos.matrix;
+
+        Gizmos.matrix =
+            Matrix4x4.TRS(
+                box.WorldCenter(),
+                box.WorldRotation(),
+                Vector3.one
+            );
+
+        Gizmos.DrawWireCube(
+            Vector3.zero,
+            box.size
         );
+
+        Gizmos.matrix =
+            old;
     }
 
     void OnDrawGizmos()
     {
-        DrawSensor(
+        DrawBox(
             frontWheel,
             Color.green
         );
 
-        DrawSensor(
+        DrawBox(
             body,
             Color.yellow
         );
 
-        DrawSensor(
+        DrawBox(
             rearWheel,
             Color.red
         );
