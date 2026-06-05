@@ -145,8 +145,8 @@ public class VehicleCollision : MonoBehaviour
     }
 
     bool CheckHeavyBox(
-        CollisionBox box,
-        HeavyWall wall)
+    CollisionBox box,
+    HeavyWall wall)
     {
         if (!box.enabled)
             return false;
@@ -160,26 +160,31 @@ public class VehicleCollision : MonoBehaviour
         if (wallCollider == null)
             return false;
 
-        Vector3 center =
-            box.WorldCenter();
-
-        Vector3 closest =
-            wallCollider.ClosestPoint(
-                center
+        Collider[] hits =
+            Physics.OverlapBox(
+                box.WorldCenter(),
+                box.size * 0.5f,
+                box.WorldRotation()
             );
 
-        bool inside =
-            Vector3.Distance(
-                center,
-                closest
-            ) < 0.01f;
+        foreach (Collider hit in hits)
+        {
+            if (hit == wallCollider)
+            {
+                Vector3 pushDirection =
+                    (
+                        vehicle.transform.position
+                        - wall.transform.position
+                    ).normalized;
 
-        if (!inside)
-            return false;
+                vehicle.transform.position +=
+                    pushDirection * 0.2f;
 
-        vehicle.RegisterCollision();
+                return true;
+            }
+        }
 
-        return true;
+        return false;
     }
 
     void CheckTutorialWalls()
