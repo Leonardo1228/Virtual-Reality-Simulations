@@ -104,7 +104,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2d71dc4610bcec6458254589de0fb3c3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Brick
-  mass: 4
+  mass: 100
   drag: 0.05
   restitution: 0.25
   radius: 0
