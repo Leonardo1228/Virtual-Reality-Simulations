@@ -10,11 +10,24 @@ public class VehicleController : SimulationBody
 
     public float maxSpeed = 35f;
 
+    [Header("Control")]
+
+    public bool playerControlled = true;
+
+
+    [Header("Air Control")]
+
+    public bool allowAirSteering = true;
+
+    public float airSteeringMultiplier = 0.3f;
+
+
     [Header("Collision")]
 
     public float collisionRecoveryTime = 0.2f;
 
     private float collisionTimer;
+
 
     private ArduinoInput arduinoInput;
 
@@ -22,11 +35,13 @@ public class VehicleController : SimulationBody
 
     private float steerInput;
 
+
     public float MoveInput =>
         moveInput;
 
     public float SteerInput =>
         steerInput;
+
 
     void Reset()
     {
@@ -36,6 +51,7 @@ public class VehicleController : SimulationBody
 
         restitution = 0.05f;
     }
+
 
     protected override void Update()
     {
@@ -47,14 +63,17 @@ public class VehicleController : SimulationBody
 
         ReadInput();
 
+
         if (collisionTimer > 0f)
         {
             collisionTimer -=
                 Time.deltaTime;
         }
 
+
         base.Update();
     }
+
 
     public void RegisterCollision()
     {
@@ -62,11 +81,20 @@ public class VehicleController : SimulationBody
             collisionRecoveryTime;
     }
 
+
     void ReadInput()
     {
+        if (!playerControlled)
+        {
+            moveInput = 0f;
+            steerInput = 0f;
+            return;
+        }
         bool arduinoReady =
             arduinoInput != null
-            && arduinoInput.IsConnected;
+            &&
+            arduinoInput.IsConnected;
+
 
         if (arduinoReady)
         {
@@ -89,6 +117,7 @@ public class VehicleController : SimulationBody
                 );
         }
 
+
         moveInput =
             Mathf.Clamp(
                 moveInput,
@@ -103,43 +132,79 @@ public class VehicleController : SimulationBody
                 1f
             );
 
-        Vector3 targetVelocity =
-            transform.forward
-            * moveInput
-            * maxSpeed;
 
-        Vector3 horizontalVelocity =
-            new Vector3(
-                velocity.x,
-                0f,
-                velocity.z
+        HandleMovement();
+    }
+
+
+    void HandleMovement()
+    {
+        // El motor solo trabaja cuando hay contacto con el suelo
+        if (grounded)
+        {
+            Vector3 targetVelocity =
+                transform.forward
+                * moveInput
+                * maxSpeed;
+
+
+            Vector3 horizontalVelocity =
+                new Vector3(
+                    velocity.x,
+                    0f,
+                    velocity.z
+                );
+
+
+            float accelerationFactor =
+                collisionTimer > 0f
+                ? 0.25f
+                : 1f;
+
+
+            horizontalVelocity =
+                Vector3.Lerp(
+                    horizontalVelocity,
+                    targetVelocity,
+                    engineForce
+                    *
+                    accelerationFactor
+                    *
+                    Time.deltaTime
+                );
+
+
+            velocity.x =
+                horizontalVelocity.x;
+
+
+            velocity.z =
+                horizontalVelocity.z;
+
+
+            transform.Rotate(
+                Vector3.up,
+                steerInput
+                *
+                steeringSpeed
+                *
+                Time.deltaTime
             );
+        }
 
-        float accelerationFactor =
-            collisionTimer > 0f
-            ? 0.25f
-            : 1f;
-
-        horizontalVelocity =
-            Vector3.Lerp(
-                horizontalVelocity,
-                targetVelocity,
-                engineForce
-                * accelerationFactor
-                * Time.deltaTime
+        // En el aire mantenemos la trayectoria
+        else if (allowAirSteering)
+        {
+            transform.Rotate(
+                Vector3.up,
+                steerInput
+                *
+                steeringSpeed
+                *
+                airSteeringMultiplier
+                *
+                Time.deltaTime
             );
-
-        velocity.x =
-            horizontalVelocity.x;
-
-        velocity.z =
-            horizontalVelocity.z;
-
-        transform.Rotate(
-            Vector3.up,
-            steerInput
-            * steeringSpeed
-            * Time.deltaTime
-        );
+        }
     }
 }

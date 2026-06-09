@@ -12,6 +12,9 @@ public class VehicleCollision : MonoBehaviour
     public static List<TutorialWall> allTutorialWalls =
         new List<TutorialWall>();
 
+    public static List<VehicleController> allVehicles =
+    new List<VehicleController>();
+
     [Header("Collision Boxes")]
 
     public CollisionBox frontWheel =
@@ -38,6 +41,17 @@ public class VehicleCollision : MonoBehaviour
 
     private VehicleController vehicle;
 
+    [Header("Vehicle Collision")]
+
+    public float vehicleBounce =
+    0.35f;
+
+    public float vehicleEnergyLoss =
+        0.8f;
+
+    public float vehicleSeparation =
+        0.2f;
+
     void Awake()
     {
         vehicle =
@@ -47,12 +61,71 @@ public class VehicleCollision : MonoBehaviour
     void Update()
     {
         CheckBrickBox(frontWheel);
+
         CheckBrickBox(body);
+
         CheckBrickBox(rearWheel);
+
 
         CheckHeavyWalls();
 
+
         CheckTutorialWalls();
+
+
+        CheckVehicleCollisions();
+    }
+
+    void CheckVehicleCollisions()
+    {
+        foreach (
+            VehicleController other
+            in allVehicles
+        )
+        {
+            if (other == null)
+                continue;
+
+
+            if (other == vehicle)
+                continue;
+
+
+            VehicleCollision otherCollision =
+                other.GetComponent<VehicleCollision>();
+
+            if (otherCollision == null)
+                continue;
+
+
+            bool collision =
+                CheckVehicleBoxes(
+                    frontWheel,
+                    otherCollision
+                )
+
+                ||
+
+                CheckVehicleBoxes(
+                    body,
+                    otherCollision
+                )
+
+                ||
+
+                CheckVehicleBoxes(
+                    rearWheel,
+                    otherCollision
+                );
+
+
+            if (collision)
+            {
+                ResolveVehicleCollision(
+                    other
+                );
+            }
+        }
     }
 
     void CheckBrickBox(
@@ -185,6 +258,169 @@ public class VehicleCollision : MonoBehaviour
         }
 
         return false;
+    }
+
+    bool CheckVehicleBoxes(
+    CollisionBox myBox,
+    VehicleCollision other)
+    {
+        if (!myBox.enabled)
+            return false;
+
+        if (myBox.anchor == null)
+            return false;
+
+        return
+            BoxOverlap(
+                myBox,
+                other.frontWheel
+            )
+
+            ||
+
+            BoxOverlap(
+                myBox,
+                other.body
+            )
+
+            ||
+
+            BoxOverlap(
+                myBox,
+                other.rearWheel
+            );
+    }
+
+    bool BoxOverlap(
+    CollisionBox a,
+    CollisionBox b)
+    {
+        if (!b.enabled)
+            return false;
+
+        if (b.anchor == null)
+            return false;
+
+
+        Vector3 aCenter =
+            a.WorldCenter();
+
+        Vector3 bCenter =
+            b.WorldCenter();
+
+
+        Vector3 aHalf =
+            a.size * 0.5f;
+
+        Vector3 bHalf =
+            b.size * 0.5f;
+
+
+        return
+            Mathf.Abs(
+                aCenter.x - bCenter.x
+            )
+            <=
+            aHalf.x + bHalf.x
+
+            &&
+
+            Mathf.Abs(
+                aCenter.y - bCenter.y
+            )
+            <=
+            aHalf.y + bHalf.y
+
+            &&
+
+            Mathf.Abs(
+                aCenter.z - bCenter.z
+            )
+            <=
+            aHalf.z + bHalf.z;
+    }
+
+    void ResolveVehicleCollision(
+    VehicleController other)
+    {
+        Vector3 normal =
+            (
+                other.transform.position
+                - transform.position
+            ).normalized;
+
+
+        Vector3 relativeVelocity =
+            vehicle.velocity
+            - other.velocity;
+
+
+        float impactSpeed =
+            Vector3.Dot(
+                relativeVelocity,
+                normal
+            );
+
+
+        if (impactSpeed <= 0f)
+            return;
+
+
+        float totalMass =
+            vehicle.mass
+            + other.mass;
+
+
+        float impulse =
+            impactSpeed
+            * vehicleBounce;
+
+
+        Vector3 force =
+            normal
+            * impulse;
+
+
+        vehicle.velocity -=
+            force
+            * (
+                other.mass
+                / totalMass
+            );
+
+
+        other.velocity +=
+            force
+            * (
+                vehicle.mass
+                / totalMass
+            );
+
+
+        vehicle.velocity *=
+            vehicleEnergyLoss;
+
+
+        other.velocity *=
+            vehicleEnergyLoss;
+
+
+        Vector3 separation =
+            normal
+            * vehicleSeparation;
+
+
+        transform.position -=
+            separation * 0.5f;
+
+
+        other.transform.position +=
+            separation * 0.5f;
+
+
+        vehicle.RegisterCollision();
+
+        other.RegisterCollision();
     }
 
     void CheckTutorialWalls()

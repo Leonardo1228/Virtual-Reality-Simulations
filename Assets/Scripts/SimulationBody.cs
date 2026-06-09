@@ -13,6 +13,7 @@ public class SimulationBody : MonoBehaviour
     [HideInInspector]
     public float radius;
 
+
     [Header("Gravity")]
 
     public bool useGravity = true;
@@ -24,6 +25,14 @@ public class SimulationBody : MonoBehaviour
             0f
         );
 
+
+    [Header("Ground")]
+
+    public bool grounded;
+
+    public float groundMargin = 0.02f;
+
+
     [Header("Linear Motion")]
 
     public Vector3 velocity;
@@ -31,6 +40,7 @@ public class SimulationBody : MonoBehaviour
     public Vector3 acceleration;
 
     protected Vector3 accumulatedForce;
+
 
     [Header("Angular Motion")]
 
@@ -42,6 +52,7 @@ public class SimulationBody : MonoBehaviour
 
     protected Vector3 accumulatedTorque;
 
+
     protected virtual void Update()
     {
         float dt =
@@ -49,10 +60,13 @@ public class SimulationBody : MonoBehaviour
 
         UpdateRadius();
 
+        UpdateGroundState();
+
         Integrate(dt);
 
         Move(dt);
     }
+
 
     void UpdateRadius()
     {
@@ -67,6 +81,16 @@ public class SimulationBody : MonoBehaviour
             ) * 0.5f;
     }
 
+
+    void UpdateGroundState()
+    {
+        grounded =
+            transform.position.y
+            <= GroundHeight()
+            + groundMargin;
+    }
+
+
     protected virtual void Integrate(
         float dt)
     {
@@ -79,8 +103,10 @@ public class SimulationBody : MonoBehaviour
                 gravity * mass;
         }
 
+
         Vector3 dragForce =
             -velocity * drag;
+
 
         acceleration =
             (
@@ -89,34 +115,36 @@ public class SimulationBody : MonoBehaviour
                 + dragForce
             ) / mass;
 
+
         velocity +=
             acceleration * dt;
 
-        if (
-            transform.position.y
-            <= GroundHeight()
-            + 0.01f
-        )
+
+        if (grounded)
         {
             ApplyGroundFriction(
                 dt
             );
         }
 
+
         angularAcceleration =
             accumulatedTorque / mass;
 
+
         angularVelocity +=
-            angularAcceleration
-            * dt;
+            angularAcceleration * dt;
+
 
         angularVelocity *=
             rotationalDrag;
+
 
         transform.Rotate(
             angularVelocity * dt,
             Space.World
         );
+
 
         accumulatedForce =
             Vector3.zero;
@@ -125,12 +153,14 @@ public class SimulationBody : MonoBehaviour
             Vector3.zero;
     }
 
+
     float GroundHeight()
     {
         return
             transform.localScale.y
             * 0.2f;
     }
+
 
     void ApplyGroundFriction(
         float dt)
@@ -142,8 +172,10 @@ public class SimulationBody : MonoBehaviour
                 velocity.z
             );
 
+
         float friction =
             4f;
+
 
         horizontal =
             Vector3.Lerp(
@@ -152,12 +184,15 @@ public class SimulationBody : MonoBehaviour
                 friction * dt
             );
 
+
         velocity.x =
             horizontal.x;
+
 
         velocity.z =
             horizontal.z;
     }
+
 
     protected virtual void Move(
         float dt)
@@ -165,33 +200,39 @@ public class SimulationBody : MonoBehaviour
         transform.position +=
             velocity * dt;
 
+
         CheckGroundCollision();
     }
+
 
     void CheckGroundCollision()
     {
         float groundHeight =
             GroundHeight();
 
+
         Vector3 pos =
             transform.position;
 
-        if (
-            pos.y < groundHeight
-        )
+
+        if (pos.y < groundHeight)
         {
             pos.y =
                 groundHeight;
 
+
             transform.position =
                 pos;
 
-            if (
-                velocity.y < 0f
-            )
+
+            grounded = true;
+
+
+            if (velocity.y < 0f)
             {
                 velocity.y *=
                     -restitution;
+
 
                 if (
                     Mathf.Abs(
@@ -199,21 +240,25 @@ public class SimulationBody : MonoBehaviour
                     ) < 0.5f
                 )
                 {
-                    velocity.y =
-                        0f;
+                    velocity.y = 0f;
                 }
             }
 
-            velocity.x *=
-                0.92f;
 
-            velocity.z *=
-                0.92f;
+            velocity.x *= 0.92f;
+
+            velocity.z *= 0.92f;
+
 
             angularVelocity *=
                 0.96f;
         }
+        else
+        {
+            grounded = false;
+        }
     }
+
 
     public void AddForce(
         Vector3 force)
@@ -222,12 +267,14 @@ public class SimulationBody : MonoBehaviour
             force;
     }
 
+
     public void AddTorque(
         Vector3 torque)
     {
         accumulatedTorque +=
             torque;
     }
+
 
     public void Bounce(
         Vector3 normal,
@@ -240,6 +287,7 @@ public class SimulationBody : MonoBehaviour
             ) * damping;
     }
 
+
     public float KineticEnergy()
     {
         return
@@ -247,6 +295,7 @@ public class SimulationBody : MonoBehaviour
             mass *
             velocity.sqrMagnitude;
     }
+
 
     public float Momentum()
     {
