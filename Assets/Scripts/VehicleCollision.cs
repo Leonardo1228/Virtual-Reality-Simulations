@@ -15,6 +15,9 @@ public class VehicleCollision : MonoBehaviour
     public static List<VehicleController> allVehicles =
     new List<VehicleController>();
 
+    public static List<Ramp> allRamps =
+    new List<Ramp>();
+
     [Header("Collision Boxes")]
 
     public CollisionBox frontWheel =
@@ -74,8 +77,9 @@ public class VehicleCollision : MonoBehaviour
 
 
         CheckVehicleCollisions();
-    }
 
+
+    }
     void CheckVehicleCollisions()
     {
         foreach (

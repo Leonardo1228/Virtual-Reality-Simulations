@@ -1,7 +1,12 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public class SimulationBody : MonoBehaviour
 {
+    public static List<Ramp> allRamps =
+        new List<Ramp>();
+
+
     [Header("Physics")]
 
     public float mass = 1000f;
@@ -9,9 +14,6 @@ public class SimulationBody : MonoBehaviour
     public float drag = 0.2f;
 
     public float restitution = 0.2f;
-
-    [HideInInspector]
-    public float radius;
 
 
     [Header("Gravity")]
@@ -31,6 +33,11 @@ public class SimulationBody : MonoBehaviour
     public bool grounded;
 
     public float groundMargin = 0.02f;
+
+    public Vector3 groundNormal =
+        Vector3.up;
+
+    protected float currentGroundHeight;
 
 
     [Header("Linear Motion")]
@@ -58,35 +65,77 @@ public class SimulationBody : MonoBehaviour
         float dt =
             Time.deltaTime;
 
-        UpdateRadius();
 
         UpdateGroundState();
 
+
         Integrate(dt);
+
 
         Move(dt);
     }
 
-
-    void UpdateRadius()
+    float GroundHeight()
     {
-        Vector3 scale =
-            transform.localScale;
-
-        radius =
-            Mathf.Max(
-                scale.x,
-                scale.y,
-                scale.z
-            ) * 0.5f;
+        return
+            transform.localScale.y
+            * 0.2f;
     }
-
-
     void UpdateGroundState()
     {
+        currentGroundHeight =
+            GroundHeight();
+
+        groundNormal =
+            Vector3.up;
+
+
+        float highestSurface =
+            currentGroundHeight;
+
+
+        foreach (Ramp ramp in allRamps)
+        {
+            if (ramp == null)
+                continue;
+
+
+            if (!ramp.ContainsPoint(
+                transform.position))
+            {
+                continue;
+            }
+
+
+            float rampHeight =
+                ramp.GetSurfaceHeight(
+                    transform.position
+                );
+
+
+            float finalHeight =
+                GroundHeight()
+                + rampHeight;
+
+
+            if (finalHeight > highestSurface)
+            {
+                highestSurface =
+                    finalHeight;
+
+                groundNormal =
+                    ramp.SurfaceNormal();
+            }
+        }
+
+
+        currentGroundHeight =
+            highestSurface;
+
+
         grounded =
             transform.position.y
-            <= GroundHeight()
+            <= currentGroundHeight
             + groundMargin;
     }
 
@@ -94,26 +143,23 @@ public class SimulationBody : MonoBehaviour
     protected virtual void Integrate(
         float dt)
     {
-        Vector3 gravityForce =
-            Vector3.zero;
+        Vector3 totalForce =
+            accumulatedForce;
 
-        if (useGravity)
+
+        if (useGravity && !grounded)
         {
-            gravityForce =
+            totalForce +=
                 gravity * mass;
         }
 
 
-        Vector3 dragForce =
+        totalForce +=
             -velocity * drag;
 
 
         acceleration =
-            (
-                accumulatedForce
-                + gravityForce
-                + dragForce
-            ) / mass;
+            totalForce / mass;
 
 
         velocity +=
@@ -154,14 +200,6 @@ public class SimulationBody : MonoBehaviour
     }
 
 
-    float GroundHeight()
-    {
-        return
-            transform.localScale.y
-            * 0.2f;
-    }
-
-
     void ApplyGroundFriction(
         float dt)
     {
@@ -173,8 +211,7 @@ public class SimulationBody : MonoBehaviour
             );
 
 
-        float friction =
-            4f;
+        float friction = 4f;
 
 
         horizontal =
@@ -187,7 +224,6 @@ public class SimulationBody : MonoBehaviour
 
         velocity.x =
             horizontal.x;
-
 
         velocity.z =
             horizontal.z;
@@ -207,51 +243,29 @@ public class SimulationBody : MonoBehaviour
 
     void CheckGroundCollision()
     {
-        float groundHeight =
-            GroundHeight();
-
-
         Vector3 pos =
             transform.position;
 
 
-        if (pos.y < groundHeight)
+        if (
+            pos.y <=
+            currentGroundHeight
+            + groundMargin
+        )
         {
             pos.y =
-                groundHeight;
-
+                currentGroundHeight;
 
             transform.position =
                 pos;
-
 
             grounded = true;
 
 
             if (velocity.y < 0f)
             {
-                velocity.y *=
-                    -restitution;
-
-
-                if (
-                    Mathf.Abs(
-                        velocity.y
-                    ) < 0.5f
-                )
-                {
-                    velocity.y = 0f;
-                }
+                velocity.y = 0f;
             }
-
-
-            velocity.x *= 0.92f;
-
-            velocity.z *= 0.92f;
-
-
-            angularVelocity *=
-                0.96f;
         }
         else
         {
