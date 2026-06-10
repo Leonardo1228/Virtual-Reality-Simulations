@@ -1,74 +1,54 @@
 using UnityEngine;
 
-[ExecuteAlways]
+[RequireComponent(typeof(Collider))]
 public class TutorialWall : MonoBehaviour
 {
-    private Renderer cachedRenderer;
+    public float slowMultiplier = 0.9f;
 
-    void Awake()
+    void Reset()
     {
-        UpdateRenderer();
+        Collider col = GetComponent<Collider>();
+
+        if (col != null)
+        {
+            col.isTrigger = true;
+        }
     }
 
-    void OnEnable()
+    void OnTriggerStay(Collider other)
     {
-        VehicleCollision.allTutorialWalls.Add(this);
+        UnifiedPhysicsBody body =
+            other.GetComponent<UnifiedPhysicsBody>();
 
-        UpdateRenderer();
-    }
+        if (body == null)
+            return;
 
-    void OnDisable()
-    {
-        VehicleCollision.allTutorialWalls.Remove(this);
-    }
-
-    void UpdateRenderer()
-    {
-        cachedRenderer =
-            GetComponentInChildren<Renderer>();
-    }
-
-    public Bounds GetWorldBounds()
-    {
-        if (cachedRenderer == null)
-            UpdateRenderer();
-
-        return cachedRenderer.bounds;
-    }
-
-    public Vector3 GetHalfExtents()
-    {
-        Bounds b =
-            GetWorldBounds();
-
-        return b.extents;
-    }
-
-    public Vector3 GetCenter()
-    {
-        Bounds b =
-            GetWorldBounds();
-
-        return b.center;
+        body.velocity *= slowMultiplier;
     }
 
     void OnDrawGizmos()
     {
-        if (cachedRenderer == null)
-            UpdateRenderer();
+        Collider col =
+            GetComponent<Collider>();
 
-        if (cachedRenderer == null)
+        if (col == null)
             return;
 
-        Bounds b =
-            cachedRenderer.bounds;
+        Gizmos.color = Color.yellow;
 
-        Gizmos.color =
-            Color.yellow;
+        if (col is BoxCollider box)
+        {
+            Matrix4x4 old = Gizmos.matrix;
 
-        Gizmos.DrawWireCube(
-            b.center,
-            b.size
-        );
+            Gizmos.matrix =
+                transform.localToWorldMatrix;
+
+            Gizmos.DrawWireCube(
+                box.center,
+                box.size
+            );
+
+            Gizmos.matrix = old;
+        }
     }
 }

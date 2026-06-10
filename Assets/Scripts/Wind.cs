@@ -12,49 +12,78 @@ public class Wind : MonoBehaviour, IForceGenerator
 
     public float turbulenceFrequency = 1f;
 
+
     void Update()
     {
         ApplyForces(Time.deltaTime);
     }
 
+
     public void ApplyForces(float dt)
     {
-        SimulationBody[] bodies =
-            FindObjectsOfType<SimulationBody>();
+        UnifiedPhysicsBody[] bodies =
+            FindObjectsOfType<UnifiedPhysicsBody>();
 
-        foreach (SimulationBody body in bodies)
+        foreach (UnifiedPhysicsBody body in bodies)
         {
             float distance =
-                Vector3.Distance(transform.position,
-                                 body.transform.position);
+                Vector3.Distance(
+                    transform.position,
+                    body.transform.position
+                );
 
             if (distance > radius)
                 continue;
 
-            Vector3 dir = windDirection.normalized;
+
+            Vector3 dir =
+                windDirection.normalized;
+
 
             float noiseX =
-                Mathf.PerlinNoise(Time.time * turbulenceFrequency, 0f) - 0.5f;
+                Mathf.PerlinNoise(
+                    Time.time * turbulenceFrequency,
+                    0f
+                ) - 0.5f;
+
 
             float noiseZ =
-                Mathf.PerlinNoise(0f, Time.time * turbulenceFrequency) - 0.5f;
+                Mathf.PerlinNoise(
+                    0f,
+                    Time.time * turbulenceFrequency
+                ) - 0.5f;
+
 
             Vector3 turbulence =
-                new Vector3(noiseX, 0f, noiseZ)
+                new Vector3(
+                    noiseX,
+                    0f,
+                    noiseZ
+                )
                 * turbulenceStrength;
 
-            Vector3 totalForce =
-                dir * strength + turbulence;
 
-            body.AddForce(totalForce);
+            Vector3 totalForce =
+                dir * strength
+                + turbulence;
+
+
+            body.AddForce(
+                totalForce
+            );
         }
     }
+
 
     void OnDrawGizmos()
     {
         Gizmos.color = Color.cyan;
 
-        Gizmos.DrawWireSphere(transform.position, radius);
+        Gizmos.DrawWireSphere(
+            transform.position,
+            radius
+        );
+
 
         Gizmos.color = Color.blue;
 

@@ -1,20 +1,14 @@
 using UnityEngine;
 
-public class Brick : SimulationBody
+public class Brick : UnifiedPhysicsBody
 {
     [Header("Brick")]
-
     public bool activated;
-
     public float damping = 0.995f;
 
     void Reset()
     {
         mass = 4f;
-
-        drag = 0.05f;
-
-        restitution = 0.25f;
     }
 
     void Start()
@@ -22,39 +16,30 @@ public class Brick : SimulationBody
         useGravity = false;
 
         if (mass <= 0f)
-        {
             mass = 4f;
-        }
     }
 
-    protected override void Update()
+    void Update()
     {
-        base.Update();
 
-        if (activated)
-        {
-            velocity *= damping;
-        }
+        if (!activated)
+            return;
+
+        velocity *= damping;
     }
 
-    public void Activate(
-        Vector3 impactForce)
+    public void Activate(Vector3 impactForce)
     {
         if (activated)
             return;
 
         activated = true;
-
         useGravity = true;
 
-        AddForce(
-            impactForce
-        );
+        AddForce(impactForce);
 
-        AddTorque(
-            Random.insideUnitSphere
-            * impactForce.magnitude
-            * 0.03f
+        AddForce(
+            Vector3.up * impactForce.magnitude * 0.2f
         );
     }
 }

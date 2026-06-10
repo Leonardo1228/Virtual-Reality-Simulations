@@ -11,7 +11,7 @@ TagManager:
   - Brick
   - Water
   - UI
-  - 
+  - collisionMask
   - 
   - 
   - 
