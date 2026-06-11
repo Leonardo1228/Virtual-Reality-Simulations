@@ -645,6 +645,8 @@ MonoBehaviour:
   windDirection: {x: 1, y: 0, z: 0}
   strength: 30
   radius: 20
+  turbulenceStrength: 10
+  turbulenceFrequency: 1
 --- !u!4 &424873527
 Transform:
   m_ObjectHideFlags: 0
@@ -654,7 +656,7 @@ Transform:
   m_GameObject: {fileID: 424873525}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -10.78056, y: -38.24385, z: 142.3}
+  m_LocalPosition: {x: -10.78056, y: -38.24385, z: 30.17}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1229,6 +1231,7 @@ MonoBehaviour:
   steering: 140
   maxSpeed: 35
   traction: 8
+  isPlayerControlled: 1
 --- !u!114 &1196691281
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1472,6 +1475,7 @@ MonoBehaviour:
   steering: 140
   maxSpeed: 35
   traction: 8
+  isPlayerControlled: 1
 --- !u!114 &2096292993
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1489,6 +1493,7 @@ MonoBehaviour:
   steering: 120
   maxSpeed: 30
   traction: 8
+  isPlayerControlled: 1
 --- !u!54 &2096292994
 Rigidbody:
   m_ObjectHideFlags: 0

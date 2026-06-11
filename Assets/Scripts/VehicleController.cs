@@ -18,6 +18,9 @@ public class VehicleController : MonoBehaviour
     public float SteerInput => steer;
     public float MoveInput => move;
 
+    [Header("Control")]
+    public bool isPlayerControlled = true;
+
     void Awake()
     {
         rb = GetComponent<Rigidbody>();
@@ -25,8 +28,15 @@ public class VehicleController : MonoBehaviour
 
     void Update()
     {
-        move = Input.GetAxisRaw("Vertical");   // W/S
-        steer = Input.GetAxisRaw("Horizontal"); // A/D
+        if (!isPlayerControlled)
+        {
+            move = 0f;
+            steer = 0f;
+            return;
+        }
+
+        move = Input.GetAxisRaw("Vertical");
+        steer = Input.GetAxisRaw("Horizontal");
     }
 
     void FixedUpdate()
