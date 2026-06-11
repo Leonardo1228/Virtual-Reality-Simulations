@@ -29,6 +29,8 @@ public class VehicleController : MonoBehaviour
 
     void Update()
     {
+        Debug.Log("SCRIPT FUNCIONA");
+
         move = Input.GetAxisRaw("Vertical");   // W/S
         turn = Input.GetAxisRaw("Horizontal"); // A/D
     }
