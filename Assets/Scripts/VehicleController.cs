@@ -3,30 +3,43 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody))]
 public class VehicleController : MonoBehaviour
 {
+    [Header("Movement")]
     public float acceleration = 35f;
-    public float brakeForce = 45f;
+    public float reverseForce = 25f;
     public float steering = 120f;
-    public float maxSpeed = 30f;
+    public float maxSpeed = 25f;
 
-    public float traction = 8f; // control lateral
+    [Header("Grip")]
+    public float lateralGrip = 6f;
+
+    [Header("Ground")]
+    public LayerMask groundMask;
+    public float groundCheckDistance = 1.2f;
+    public float groundForce = 25f;
+
+    [Header("Stability")]
+    public float downForce = 10f;
 
     Rigidbody rb;
 
     float move;
     float steer;
 
-    public float SteerInput => steer;
-    public float MoveInput => move;
-
-    [Header("Control")]
     public bool isPlayerControlled = true;
 
-    [Header("Ground Detection")]
-    public LayerMask groundMask;
+    public float SteerInput => steer;
+    public float MoveInput => move;
 
     void Awake()
     {
         rb = GetComponent<Rigidbody>();
+
+        rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+        rb.interpolation = RigidbodyInterpolation.Interpolate;
+
+        rb.constraints =
+            RigidbodyConstraints.FreezeRotationX |
+            RigidbodyConstraints.FreezeRotationZ;
     }
 
     void Update()
@@ -44,56 +57,73 @@ public class VehicleController : MonoBehaviour
 
     void FixedUpdate()
     {
-        ApplyEngineForce();
+        ApplyEngine();
         ApplySteering();
-        ApplySideFriction();
-        ClampSpeed();
+        ApplyGrip();
+        ApplyDownForce();
         StickToGround();
+        ClampSpeed();
     }
 
-    #region ENGINE
-    void ApplyEngineForce()
+    // =========================
+    // ENGINE
+    // =========================
+    void ApplyEngine()
     {
         Vector3 forward = transform.forward;
 
         if (move > 0f)
         {
-            rb.AddForce(forward * acceleration * move, ForceMode.Force);
+            rb.AddForce(forward * move * acceleration, ForceMode.Force);
         }
         else if (move < 0f)
         {
-            rb.AddForce(-rb.linearVelocity.normalized * brakeForce, ForceMode.Force);
+            rb.AddForce(-forward * Mathf.Abs(move) * reverseForce, ForceMode.Force);
         }
     }
-    #endregion
 
-    #region STEERING
+    // =========================
+    // STEERING
+    // =========================
     void ApplySteering()
     {
-        float speedFactor = Mathf.Clamp01(rb.linearVelocity.magnitude / 10f);
+        float speed = rb.linearVelocity.magnitude;
+        float speedFactor = Mathf.Clamp01(speed / 10f);
 
         float turn = steer * steering * speedFactor;
 
         rb.AddTorque(Vector3.up * turn, ForceMode.Force);
     }
-    #endregion
 
-    #region STABILITY
-    void ApplySideFriction()
+    // =========================
+    // GRIP (anti-drift arcade)
+    // =========================
+    void ApplyGrip()
     {
         Vector3 localVel = transform.InverseTransformDirection(rb.linearVelocity);
 
-        localVel.x = Mathf.Lerp(localVel.x, 0, traction * Time.fixedDeltaTime);
+        localVel.x = Mathf.Lerp(localVel.x, 0f, lateralGrip * Time.fixedDeltaTime);
 
-        rb.linearVelocity = transform.TransformDirection(localVel);
+        Vector3 corrected = transform.TransformDirection(localVel);
+
+        rb.AddForce(corrected - rb.linearVelocity, ForceMode.VelocityChange);
     }
-    #endregion
 
-    #region SPEED LIMIT
+    // =========================
+    // DOWN FORCE (evita vuelo raro)
+    // =========================
+    void ApplyDownForce()
+    {
+        rb.AddForce(-transform.up * downForce, ForceMode.Force);
+    }
+
+    // =========================
+    // SPEED LIMIT
+    // =========================
     void ClampSpeed()
     {
         Vector3 flat = rb.linearVelocity;
-        flat.y = 0;
+        flat.y = 0f;
 
         if (flat.magnitude > maxSpeed)
         {
@@ -101,18 +131,18 @@ public class VehicleController : MonoBehaviour
             rb.linearVelocity = new Vector3(limited.x, rb.linearVelocity.y, limited.z);
         }
     }
-    #endregion
+
+    // =========================
+    // GROUND STICK (ligero, no invasivo)
+    // =========================
     void StickToGround()
     {
-        if (Physics.Raycast(
-            transform.position,
-            Vector3.down,
-            out RaycastHit hit,
-            1.2f,
-            groundMask))
+        if (Physics.Raycast(transform.position, Vector3.down, out RaycastHit hit, groundCheckDistance, groundMask))
         {
-            Vector3 slopeDir = Vector3.ProjectOnPlane(Vector3.down, hit.normal);
-            rb.AddForce(slopeDir * 20f, ForceMode.Force);
+            Vector3 slopeForward = Vector3.ProjectOnPlane(transform.forward, hit.normal);
+
+            rb.AddForce(-hit.normal * groundForce, ForceMode.Force);
+            rb.AddForce(slopeForward * move * groundForce, ForceMode.Force);
         }
     }
 }
