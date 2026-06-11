@@ -9,6 +9,9 @@ public class HeavyWall : MonoBehaviour
     [Header("Damage")]
     public float damageMultiplier = 1f;
 
+    [Header("Layers")]
+    public LayerMask validImpactLayers;
+
     Rigidbody rb;
     bool broken;
 
@@ -25,6 +28,9 @@ public class HeavyWall : MonoBehaviour
     void OnCollisionEnter(Collision collision)
     {
         if (broken) return;
+
+        if ((validImpactLayers.value & (1 << collision.gameObject.layer)) == 0)
+            return;
 
         float impact = collision.impulse.magnitude;
 
@@ -55,9 +61,7 @@ public class HeavyWall : MonoBehaviour
         }
 
         // empuje físico real del choque
-        rb.AddForce(
-            collision.impulse,
-            ForceMode.Impulse
-        );
+        Vector3 force = collision.relativeVelocity * rb.mass;
+        rb.AddForce(force, ForceMode.Impulse);
     }
 }

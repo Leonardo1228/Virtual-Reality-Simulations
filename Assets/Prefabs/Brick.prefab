@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 5689048842606185586}
   - component: {fileID: 5819056065121366777}
   - component: {fileID: 5438953883951570620}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Brick
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -156,3 +156,6 @@ MonoBehaviour:
   activated: 1
   bounceLoss: 0.3
   activationThreshold: 5
+  affectedBy:
+    serializedVersion: 2
+    m_Bits: 8832

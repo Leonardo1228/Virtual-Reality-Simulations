@@ -9,6 +9,16 @@ public class Wind : MonoBehaviour
     public float turbulenceStrength = 10f;
     public float turbulenceFrequency = 1f;
 
+    [Header("Layers")]
+    public LayerMask affectedLayers;
+
+    Rigidbody[] cachedBodies;
+
+    void Start()
+    {
+        cachedBodies = FindObjectsOfType<Rigidbody>();
+    }
+
     void FixedUpdate()
     {
         ApplyWind();
@@ -16,8 +26,6 @@ public class Wind : MonoBehaviour
 
     void ApplyWind()
     {
-        Rigidbody[] bodies = FindObjectsOfType<Rigidbody>();
-
         Vector3 baseWind = windDirection.normalized * strength;
 
         float time = Time.time;
@@ -29,13 +37,20 @@ public class Wind : MonoBehaviour
 
         Vector3 totalWind = baseWind + turbulence;
 
-        foreach (var rb in bodies)
+        foreach (var rb in cachedBodies)
         {
             if (rb == null || rb.isKinematic)
                 continue;
 
+            // =========================
+            // LAYER FILTER (IMPORTANTE)
+            // =========================
+            if ((affectedLayers.value & (1 << rb.gameObject.layer)) == 0)
+                continue;
+
             float dist = Vector3.Distance(transform.position, rb.position);
-            if (dist > radius) continue;
+            if (dist > radius)
+                continue;
 
             float t = 1f - (dist / radius);
             t = Mathf.SmoothStep(0f, 1f, t);

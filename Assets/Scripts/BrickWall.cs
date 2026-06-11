@@ -91,14 +91,12 @@ public class BrickWall : MonoBehaviour
                 continue;
 
             float dist = Vector3.Distance(brick.transform.position, impactPoint);
-
             if (dist > radius)
                 continue;
 
             float strength = 1f - (dist / radius);
 
             Rigidbody rb = brick.GetComponent<Rigidbody>();
-
             if (rb == null) continue;
 
             rb.isKinematic = false;

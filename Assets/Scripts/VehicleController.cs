@@ -21,6 +21,9 @@ public class VehicleController : MonoBehaviour
     [Header("Control")]
     public bool isPlayerControlled = true;
 
+    [Header("Ground Detection")]
+    public LayerMask groundMask;
+
     void Awake()
     {
         rb = GetComponent<Rigidbody>();
@@ -101,7 +104,12 @@ public class VehicleController : MonoBehaviour
     #endregion
     void StickToGround()
     {
-        if (Physics.Raycast(transform.position, Vector3.down, out RaycastHit hit, 1.2f))
+        if (Physics.Raycast(
+            transform.position,
+            Vector3.down,
+            out RaycastHit hit,
+            1.2f,
+            groundMask))
         {
             Vector3 slopeDir = Vector3.ProjectOnPlane(Vector3.down, hit.normal);
             rb.AddForce(slopeDir * 20f, ForceMode.Force);

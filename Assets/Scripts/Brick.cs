@@ -15,6 +15,9 @@ public class Brick : MonoBehaviour
 
     Rigidbody rb;
 
+    [Header("Layers")]
+    public LayerMask affectedBy;
+
     void Awake()
     {
         rb = GetComponent<Rigidbody>();
@@ -56,4 +59,5 @@ public class Brick : MonoBehaviour
     {
         rb.linearVelocity *= (1f - bounceLoss);
     }
+
 }

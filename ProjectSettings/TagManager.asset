@@ -11,12 +11,12 @@ TagManager:
   - 
   - Water
   - UI
-  - Ground
-  - Wall
+  - WorldStatic
   - Vehicle
-  - Brick
-  - Prop
+  - Destructible
+  - ForceField
   - Trigger
+  - 
   - 
   - 
   - 
