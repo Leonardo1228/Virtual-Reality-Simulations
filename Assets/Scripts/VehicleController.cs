@@ -27,8 +27,16 @@ public class VehicleController : MonoBehaviour
 
     void Update()
     {
-        moveInput = Input.GetAxis("Vertical");
-        steerInput = Input.GetAxis("Horizontal");
+        // Movimiento vertical (UP / DOWN + W / S)
+        moveInput =
+            (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow) ? 1f : 0f)
+            -
+            (Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow) ? 1f : 0f);
+
+        // Giro horizontal (A / D + arrows opcional)
+        steerInput =
+            Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow) ? 1f :
+            Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow) ? -1f : 0f;
 
         Drive();
         Rotate();
