@@ -1,113 +1,100 @@
 using UnityEngine;
 
+[RequireComponent(typeof(Rigidbody))]
 public class VehicleController : MonoBehaviour
 {
-    public PhysicsBody body;
+    public float acceleration = 35f;
+    public float brakeForce = 45f;
+    public float steering = 120f;
+    public float maxSpeed = 30f;
 
-    public float acceleration = 20f;
-    public float brake = 25f;
-    public float maxSpeed = 35f;
-    public float steering = 140f;
+    public float traction = 8f; // control lateral
 
-    float moveInput;
-    float steerInput;
+    Rigidbody rb;
 
-    public float MoveInput => moveInput;
-    public float SteerInput => steerInput;
+    float move;
+    float steer;
 
-    float yaw;
+    public float SteerInput => steer;
+    public float MoveInput => move;
 
-    void Start()
+    void Awake()
     {
-        if (body == null)
-            body = GetComponent<PhysicsBody>();
-
-        yaw = transform.eulerAngles.y;
+        rb = GetComponent<Rigidbody>();
     }
 
     void Update()
     {
-        // Movimiento vertical (UP / DOWN + W / S)
-        moveInput =
-            (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow) ? 1f : 0f)
-            -
-            (Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow) ? 1f : 0f);
-
-        // Giro horizontal (A / D + arrows opcional)
-        steerInput =
-            Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow) ? 1f :
-            Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow) ? -1f : 0f;
-
-        Drive();
-        Rotate();
+        move = Input.GetAxisRaw("Vertical");   // W/S
+        steer = Input.GetAxisRaw("Horizontal"); // A/D
     }
 
-    void Drive()
+    void FixedUpdate()
     {
-        float dt = Time.deltaTime;
+        ApplyEngineForce();
+        ApplySteering();
+        ApplySideFriction();
+        ClampSpeed();
+        StickToGround();
+    }
 
-        Vector3 forward =
-            Quaternion.Euler(0f, yaw, 0f) * Vector3.forward;
+    #region ENGINE
+    void ApplyEngineForce()
+    {
+        Vector3 forward = transform.forward;
 
-        forward.y = 0f;
-        forward.Normalize();
-
-        // =========================
-        // ACCELERATION / BRAKE
-        // =========================
-
-        if (moveInput > 0f)
+        if (move > 0f)
         {
-            body.velocity += forward * moveInput * acceleration * dt;
+            rb.AddForce(forward * acceleration * move, ForceMode.Force);
         }
-        else if (moveInput < 0f)
+        else if (move < 0f)
         {
-            body.velocity -= forward * brake * dt;
+            rb.AddForce(-rb.linearVelocity.normalized * brakeForce, ForceMode.Force);
         }
+    }
+    #endregion
 
-        // =========================
-        // SPEED LIMIT
-        // =========================
+    #region STEERING
+    void ApplySteering()
+    {
+        float speedFactor = Mathf.Clamp01(rb.linearVelocity.magnitude / 10f);
 
-        Vector3 flat = new Vector3(body.velocity.x, 0f, body.velocity.z);
+        float turn = steer * steering * speedFactor;
+
+        rb.AddTorque(Vector3.up * turn, ForceMode.Force);
+    }
+    #endregion
+
+    #region STABILITY
+    void ApplySideFriction()
+    {
+        Vector3 localVel = transform.InverseTransformDirection(rb.linearVelocity);
+
+        localVel.x = Mathf.Lerp(localVel.x, 0, traction * Time.fixedDeltaTime);
+
+        rb.linearVelocity = transform.TransformDirection(localVel);
+    }
+    #endregion
+
+    #region SPEED LIMIT
+    void ClampSpeed()
+    {
+        Vector3 flat = rb.linearVelocity;
+        flat.y = 0;
 
         if (flat.magnitude > maxSpeed)
         {
-            flat = flat.normalized * maxSpeed;
-
-            body.velocity.x = flat.x;
-            body.velocity.z = flat.z;
+            Vector3 limited = flat.normalized * maxSpeed;
+            rb.linearVelocity = new Vector3(limited.x, rb.linearVelocity.y, limited.z);
         }
-
-        // =========================
-        // STEERING
-        // =========================
-
-        float control = body.grounded ? 1f : 0.3f;
-
-        yaw += steerInput * steering * control * dt;
     }
-
-    void Rotate()
+    #endregion
+    void StickToGround()
     {
-        Vector3 up = body.grounded ? body.groundNormal : Vector3.up;
-
-        Vector3 forward =
-            Quaternion.Euler(0f, yaw, 0f) * Vector3.forward;
-
-        forward = Vector3.ProjectOnPlane(forward, up).normalized;
-
-        if (forward.sqrMagnitude < 0.001f)
-            forward = transform.forward;
-
-        Quaternion target =
-            Quaternion.LookRotation(forward, up);
-
-        transform.rotation =
-            Quaternion.Slerp(
-                transform.rotation,
-                target,
-                10f * Time.deltaTime
-            );
+        if (Physics.Raycast(transform.position, Vector3.down, out RaycastHit hit, 1.2f))
+        {
+            Vector3 slopeDir = Vector3.ProjectOnPlane(Vector3.down, hit.normal);
+            rb.AddForce(slopeDir * 20f, ForceMode.Force);
+        }
     }
 }

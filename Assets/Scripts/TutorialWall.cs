@@ -15,14 +15,14 @@ public class TutorialWall : MonoBehaviour
 
     void OnTriggerStay(Collider other)
     {
-        PhysicsBody body = other.GetComponentInParent<PhysicsBody>();
+        Rigidbody rb = other.attachedRigidbody;
 
-        if (body == null || body.isStatic)
+        if (rb == null || rb.isKinematic)
             return;
 
-        // fuerza de frenado estilo "zona de resistencia"
-        Vector3 slowdown = -body.velocity * slowForce;
+        Vector3 slowdown = -rb.linearVelocity * slowForce;
 
+        rb.AddForce(slowdown, ForceMode.Force);
     }
 
     void OnDrawGizmos()

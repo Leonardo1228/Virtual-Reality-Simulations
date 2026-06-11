@@ -1,5 +1,6 @@
 using UnityEngine;
 
+[RequireComponent(typeof(Rigidbody))]
 public class Brick : MonoBehaviour
 {
     [Header("Brick")]
@@ -9,56 +10,50 @@ public class Brick : MonoBehaviour
     [Range(0f, 1f)]
     public float bounceLoss = 0.3f;
 
-    private PhysicsBody body;
+    [Header("Activation")]
+    public float activationThreshold = 5f;
+
+    Rigidbody rb;
 
     void Awake()
     {
-        body = GetComponent<PhysicsBody>();
-    }
+        rb = GetComponent<Rigidbody>();
 
-    void Reset()
-    {
-        if (body == null) body = GetComponent<PhysicsBody>();
-
-        if (body != null)
+        if (!activated)
         {
-            body.mass = 4f;
-            body.drag = 0f;
-            body.restitution = 0.2f;
-            body.isStatic = true;
-
+            rb.isKinematic = true;
         }
     }
 
-    // =========================
-    // CALLED BY SOLVER ONLY
-    // =========================
-    public void ApplyImpact(Vector3 velocityBeforeHit, Vector3 normal)
+    void OnCollisionEnter(Collision collision)
     {
-        float force = velocityBeforeHit.magnitude;
+        float impact = collision.impulse.magnitude;
 
-        if (!activated && force > 5f)
+        if (!activated && impact > activationThreshold)
         {
-            Activate(normal * force);
+            Activate(collision);
         }
 
-        if (activated && body != null)
+        if (activated)
         {
-            // pérdida de energía tipo arcade
-            body.velocity *= (1f - bounceLoss);
+            ApplyDamageResponse();
         }
     }
 
-    public void Activate(Vector3 impulse)
+    void Activate(Collision collision)
     {
-        if (activated) return;
-
         activated = true;
 
-        if (body == null) return;
+        rb.isKinematic = false;
 
-        body.isStatic = false;
+        rb.AddForce(
+            collision.impulse,
+            ForceMode.Impulse
+        );
+    }
 
-        body.velocity += impulse / Mathf.Max(0.001f, body.mass);
+    void ApplyDamageResponse()
+    {
+        rb.linearVelocity *= (1f - bounceLoss);
     }
 }

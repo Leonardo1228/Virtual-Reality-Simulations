@@ -2,54 +2,62 @@ using UnityEngine;
 
 public class HeavyWall : MonoBehaviour
 {
-    [Header("Wall")]
+    [Header("Wall Settings")]
     public bool fixedWall = true;
+    public float breakImpulseThreshold = 40f;
 
-    [Header("Arcade Response")]
-    public float breakForceThreshold = 40f;
+    [Header("Damage")]
+    public float damageMultiplier = 1f;
 
-    [Header("Damping")]
-    public float impactDamping = 0.2f;
-
-    private PhysicsBody body;
+    Rigidbody rb;
+    bool broken;
 
     void Awake()
     {
-        body = GetComponent<PhysicsBody>();
-    }
+        rb = GetComponent<Rigidbody>();
 
-    // llamado por el solver cuando hay impacto (opcional hook)
-    public void ApplyImpact(Vector3 velocityBeforeHit, Vector3 normal)
-    {
-        if (body == null) return;
-
-        float impactForce = velocityBeforeHit.magnitude;
-
-        // pérdida de energía tipo GTA
-        body.velocity *= (1f - impactDamping);
-
-        if (!fixedWall && impactForce > breakForceThreshold)
+        if (fixedWall && rb != null)
         {
-            MakeDynamic(velocityBeforeHit * 0.5f);
+            rb.isKinematic = true;
         }
     }
 
-    public void MakeDynamic(Vector3 impulse)
+    void OnCollisionEnter(Collision collision)
     {
-        if (body == null) return;
+        if (broken) return;
 
-        body.isStatic = false;
+        float impact = collision.impulse.magnitude;
 
+        if (impact < 0.1f)
+            return;
 
-        body.velocity += impulse / Mathf.Max(0.001f, body.mass);
+        HandleImpact(collision, impact);
     }
 
-    public void Freeze()
+    void HandleImpact(Collision collision, float impact)
     {
-        if (body == null) return;
+        // daño opcional (puedes expandir esto después)
+        float damage = impact * damageMultiplier;
 
-        body.velocity = Vector3.zero;
-        body.isStatic = true;
+        if (impact > breakImpulseThreshold)
+        {
+            Break(collision);
+        }
+    }
 
+    void Break(Collision collision)
+    {
+        broken = true;
+
+        if (rb != null)
+        {
+            rb.isKinematic = false;
+        }
+
+        // empuje físico real del choque
+        rb.AddForce(
+            collision.impulse,
+            ForceMode.Impulse
+        );
     }
 }

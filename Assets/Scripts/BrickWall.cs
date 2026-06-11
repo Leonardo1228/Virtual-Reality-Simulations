@@ -17,7 +17,10 @@ public class BrickWall : MonoBehaviour
     public bool generateOnStart = true;
     public bool clearFirst = true;
 
-    private readonly List<Brick> bricks = new();
+    [Header("Optimization")]
+    public bool usePhysicsSleep = true;
+
+    List<Brick> bricks = new();
 
     void Start()
     {
@@ -35,23 +38,18 @@ public class BrickWall : MonoBehaviour
 
         bricks.Clear();
 
-        float wallWidth = width * (brickSize.x + spacing);
-
-        Vector3 start =
-            transform.position
-            - transform.right * wallWidth * 0.5f
-            + transform.up * brickSize.y * 0.5f;
+        Vector3 origin = transform.position;
 
         for (int y = 0; y < height; y++)
         {
-            float offset = (y % 2 == 0) ? 0f : brickSize.x * 0.5f;
+            float offset = (y % 2 == 0) ? 0f : (brickSize.x * 0.5f);
 
             for (int x = 0; x < width; x++)
             {
                 Vector3 pos =
-                    start
-                    + transform.right * (x * (brickSize.x + spacing) + offset)
-                    + transform.up * (y * (brickSize.y + spacing));
+                    origin +
+                    transform.right * (x * (brickSize.x + spacing) + offset) +
+                    transform.up * (y * (brickSize.y + spacing));
 
                 Brick brick = Instantiate(
                     brickPrefab,
@@ -61,21 +59,33 @@ public class BrickWall : MonoBehaviour
                 );
 
                 brick.transform.localScale = brickSize;
-
-                // ✔ SOLO lógica (no física)
                 brick.activated = false;
 
-                // NO tocar isStatic / gravity / Stop()
-                // el motor lo controla
+                SetupBrickRigidbody(brick);
 
                 bricks.Add(brick);
             }
         }
     }
 
-    public void BreakWall(Vector3 impactPoint, Vector3 impactForce, float radius)
+    void SetupBrickRigidbody(Brick brick)
     {
-        foreach (Brick brick in bricks)
+        Rigidbody rb = brick.GetComponent<Rigidbody>();
+
+        rb.mass = 3f;
+        rb.linearDamping = 0.2f;
+        rb.angularDamping = 0.5f;
+
+        rb.interpolation = RigidbodyInterpolation.Interpolate;
+        rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
+
+        if (usePhysicsSleep)
+            rb.sleepThreshold = 0.5f;
+    }
+
+    public void BreakWall(Vector3 impactPoint, float radius, Vector3 force)
+    {
+        foreach (var brick in bricks)
         {
             if (brick == null || brick.activated)
                 continue;
@@ -85,12 +95,15 @@ public class BrickWall : MonoBehaviour
             if (dist > radius)
                 continue;
 
-            float strength = 1f - Mathf.Clamp01(dist / radius);
+            float strength = 1f - (dist / radius);
 
-            // energía coherente
-            Vector3 impulse = impactForce * strength;
+            Rigidbody rb = brick.GetComponent<Rigidbody>();
 
-            brick.Activate(impulse);
+            if (rb == null) continue;
+
+            rb.isKinematic = false;
+
+            rb.AddForce(force * strength, ForceMode.Impulse);
         }
     }
 
@@ -98,35 +111,12 @@ public class BrickWall : MonoBehaviour
     {
         for (int i = transform.childCount - 1; i >= 0; i--)
         {
-            Transform child = transform.GetChild(i);
-
 #if UNITY_EDITOR
             if (!Application.isPlaying)
-                DestroyImmediate(child.gameObject);
+                DestroyImmediate(transform.GetChild(i).gameObject);
             else
 #endif
-                Destroy(child.gameObject);
+                Destroy(transform.GetChild(i).gameObject);
         }
-    }
-
-    void OnDrawGizmos()
-    {
-        Gizmos.color = Color.yellow;
-
-        float totalWidth = width * (brickSize.x + spacing);
-        float totalHeight = height * (brickSize.y + spacing);
-
-        Vector3 center =
-            transform.position
-            + transform.up * totalHeight * 0.5f;
-
-        Gizmos.matrix = transform.localToWorldMatrix;
-
-        Gizmos.DrawWireCube(
-            Vector3.up * totalHeight * 0.5f,
-            new Vector3(totalWidth, totalHeight, brickSize.z)
-        );
-
-        Gizmos.matrix = Matrix4x4.identity;
     }
 }

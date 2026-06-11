@@ -3,7 +3,8 @@ using UnityEngine;
 public class WheelAnimator : MonoBehaviour
 {
     [Header("References")]
-    public PhysicsBody vehicle;
+    public Rigidbody vehicleRb;
+    public VehicleController controller;
 
     public Transform frontWheel;
     public Transform rearWheel;
@@ -22,7 +23,7 @@ public class WheelAnimator : MonoBehaviour
 
     void Update()
     {
-        if (vehicle == null)
+        if (vehicleRb == null)
             return;
 
         UpdateWheelRotation();
@@ -31,16 +32,15 @@ public class WheelAnimator : MonoBehaviour
 
     void UpdateWheelRotation()
     {
-        Vector3 vel = vehicle.velocity;
+        Vector3 vel = vehicleRb.linearVelocity;
         vel.y = 0f;
 
         float speed = vel.magnitude;
 
-        // dirección estable basada en velocity real (NO transform.forward)
         Vector3 forward =
             speed > 0.1f
             ? vel.normalized
-            : vehicle.transform.forward;
+            : transform.root.forward;
 
         float forwardSpeed = Vector3.Dot(vel, forward);
 
@@ -51,9 +51,8 @@ public class WheelAnimator : MonoBehaviour
     {
         float steer = 0f;
 
-        var controller = vehicle.GetComponent<VehicleController>();
         if (controller != null)
-            steer = controller.MoveInput * maxSteeringAngle;
+            steer = controller.SteerInput * maxSteeringAngle;
 
         Quaternion roll =
             Quaternion.AngleAxis(wheelRotation, rollingAxis.normalized);
