@@ -158,4 +158,4 @@ MonoBehaviour:
   activationThreshold: 5
   affectedBy:
     serializedVersion: 2
-    m_Bits: 640
+    m_Bits: 960

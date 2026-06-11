@@ -366,9 +366,6 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 5595306355369600747, guid: 4230af04511df804387a7cceaf076ad0, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2096292994}
-    - targetCorrespondingSourceObject: {fileID: 5595306355369600747, guid: 4230af04511df804387a7cceaf076ad0, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 2096292993}
   m_SourcePrefab: {fileID: 100100000, guid: 4230af04511df804387a7cceaf076ad0, type: 3}
 --- !u!1 &274970978
 GameObject:
@@ -1246,7 +1243,7 @@ MonoBehaviour:
   isPlayerControlled: 0
   groundMask:
     serializedVersion: 2
-    m_Bits: 256
+    m_Bits: 2368
 --- !u!114 &1196691281
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1677,28 +1674,7 @@ MonoBehaviour:
   isPlayerControlled: 1
   groundMask:
     serializedVersion: 2
-    m_Bits: 2304
---- !u!114 &2096292993
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2096292985}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e5c2128664e033149b0e6e07bde0b368, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::VehicleController
-  acceleration: 35
-  brakeForce: 45
-  steering: 120
-  maxSpeed: 30
-  traction: 8
-  isPlayerControlled: 1
-  groundMask:
-    serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 2368
 --- !u!54 &2096292994
 Rigidbody:
   m_ObjectHideFlags: 0
