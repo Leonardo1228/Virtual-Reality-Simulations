@@ -119,4 +119,54 @@ public class BrickWall : MonoBehaviour
                 Destroy(transform.GetChild(i).gameObject);
         }
     }
+
+    void OnDrawGizmos()
+    {
+        if (width <= 0 || height <= 0)
+            return;
+
+        Gizmos.matrix = transform.localToWorldMatrix;
+
+        // =========================
+        // COLOR BASE DEL MURO
+        // =========================
+        Gizmos.color = new Color(1f, 0.8f, 0.2f, 0.2f);
+
+        float totalWidth =
+            width * (brickSize.x + spacing);
+
+        float totalHeight =
+            height * (brickSize.y + spacing);
+
+        // centro del muro
+        Vector3 center =
+            Vector3.right * (totalWidth * 0.5f)
+            + Vector3.up * (totalHeight * 0.5f);
+
+        Gizmos.DrawWireCube(
+            center,
+            new Vector3(totalWidth, totalHeight, brickSize.z)
+        );
+
+        // =========================
+        // DIBUJO DE LADRILLOS
+        // =========================
+        Gizmos.color = new Color(1f, 0.3f, 0.1f, 0.4f);
+
+        for (int y = 0; y < height; y++)
+        {
+            float offset = (y % 2 == 0) ? 0f : (brickSize.x * 0.5f);
+
+            for (int x = 0; x < width; x++)
+            {
+                Vector3 pos =
+                    Vector3.right * (x * (brickSize.x + spacing) + offset)
+                    + Vector3.up * (y * (brickSize.y + spacing));
+
+                Gizmos.DrawWireCube(pos, brickSize);
+            }
+        }
+
+        Gizmos.matrix = Matrix4x4.identity;
+    }
 }
