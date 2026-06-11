@@ -2,25 +2,10 @@ using UnityEngine;
 using System.Collections.Generic;
 
 
-public enum CollisionBoxPart
-{
-    Body,
-    FrontWheel,
-    RearWheel,
-    Other
-}
-
-
 [System.Serializable]
 public class CollisionBox
 {
     public bool enabled = true;
-
-
-    [Header("Part")]
-
-    public CollisionBoxPart part =
-        CollisionBoxPart.Body;
 
 
     [Header("Local Transform")]
@@ -35,18 +20,6 @@ public class CollisionBox
 
     public Vector3 size =
         Vector3.one;
-
-
-    [Header("Collision Response")]
-
-    [Min(0f)]
-    public float separationMultiplier =
-        1f;
-
-
-    [Min(0f)]
-    public float penetrationMultiplier =
-        1f;
 
 
     public Vector3 WorldCenter(
@@ -72,37 +45,6 @@ public class CollisionBox
     {
         return size * 0.5f;
     }
-
-
-    public Vector3 WorldSize(
-        Transform root)
-    {
-        Vector3 scale =
-            root.lossyScale;
-
-
-        scale =
-            new Vector3(
-                Mathf.Abs(scale.x),
-                Mathf.Abs(scale.y),
-                Mathf.Abs(scale.z)
-            );
-
-
-        return Vector3.Scale(
-            size,
-            scale
-        );
-    }
-
-
-    public Vector3 WorldHalfExtents(
-        Transform root)
-    {
-        return WorldSize(
-            root
-        ) * 0.5f;
-    }
 }
 
 
@@ -111,9 +53,6 @@ public class CollisionBox
 public class UnifiedPhysicsBody :
     MonoBehaviour
 {
-    static BoxCollider penetrationProbe;
-
-
     /*
     ==========================
         GLOBAL REGISTRY
@@ -129,9 +68,6 @@ public class UnifiedPhysicsBody :
 
     protected virtual void OnEnable()
     {
-        EnsureCollisionBoxes();
-
-
         if (
             !allBodies.Contains(
                 this
@@ -150,51 +86,6 @@ public class UnifiedPhysicsBody :
         allBodies.Remove(
             this
         );
-    }
-
-
-    protected virtual void Reset()
-    {
-        EnsureCollisionBoxes();
-    }
-
-
-    void EnsureCollisionBoxes()
-    {
-        if (
-            collisionBoxes != null
-            &&
-            collisionBoxes.Length > 0
-        )
-        {
-            return;
-        }
-
-
-        BoxCollider boxCollider =
-            GetComponent<BoxCollider>();
-
-
-        CollisionBox box =
-            new CollisionBox();
-
-
-        if (boxCollider != null)
-        {
-            box.center =
-                boxCollider.center;
-
-
-            box.size =
-                boxCollider.size;
-        }
-
-
-        collisionBoxes =
-            new CollisionBox[]
-            {
-                box
-            };
     }
 
 
@@ -296,22 +187,6 @@ public class UnifiedPhysicsBody :
     [Min(0.001f)]
     public float skinWidth =
         0.02f;
-
-
-    [Header("Vehicle Part Response")]
-
-    public bool useVehiclePartResponse =
-        true;
-
-
-    [Min(0f)]
-    public float wheelSeparationMultiplier =
-        2f;
-
-
-    [Min(0f)]
-    public float wheelPenetrationMultiplier =
-        2f;
 
 
     [Tooltip(
@@ -517,16 +392,6 @@ public class UnifiedPhysicsBody :
 
     void SolvePenetration()
     {
-        BoxCollider probe =
-            GetPenetrationProbe();
-
-
-        if (probe == null)
-        {
-            return;
-        }
-
-
         for (
             int iteration = 0;
             iteration < penetrationIterations;
@@ -556,17 +421,13 @@ public class UnifiedPhysicsBody :
                             transform
                         ),
 
-                        box.WorldHalfExtents(
-                            transform
-                        ),
+                        box.HalfExtents(),
 
                         box.WorldRotation(
                             transform
                         ),
 
-                        collisionMask,
-
-                        QueryTriggerInteraction.Ignore
+                        collisionMask
                     );
 
 
@@ -575,7 +436,10 @@ public class UnifiedPhysicsBody :
                     in overlaps
                 )
                 {
-                    if (IsOwnCollider(col))
+                    if (
+                        col.transform ==
+                        transform
+                    )
                     {
                         continue;
                     }
@@ -586,29 +450,15 @@ public class UnifiedPhysicsBody :
                     float distance;
 
 
-                    probe.size =
-                        box.WorldSize(
-                            transform
-                        );
-
-
-                    probe.center =
-                        Vector3.zero;
-
-
                     bool penetrated =
                         Physics.ComputePenetration(
-                            probe,
-                            box.WorldCenter(
-                                transform
-                            ),
-                            box.WorldRotation(
-                                transform
-                            ),
-
                             col,
                             col.transform.position,
                             col.transform.rotation,
+
+                            GetComponent<Collider>(),
+                            transform.position,
+                            transform.rotation,
 
                             out direction,
                             out distance
@@ -624,9 +474,7 @@ public class UnifiedPhysicsBody :
                         (
                             distance
                             +
-                            GetPenetrationPadding(
-                                box
-                            )
+                            penetrationPadding
                         );
 
 
@@ -643,136 +491,6 @@ public class UnifiedPhysicsBody :
         }
     }
 
-
-    static BoxCollider GetPenetrationProbe()
-    {
-        if (penetrationProbe != null)
-        {
-            return penetrationProbe;
-        }
-
-
-        GameObject probeObject =
-            new GameObject(
-                "UnifiedPhysicsBody Box Penetration Probe"
-            );
-
-
-        probeObject.hideFlags =
-            HideFlags.HideAndDontSave;
-
-
-        penetrationProbe =
-            probeObject.AddComponent
-            <BoxCollider>();
-
-
-        penetrationProbe.enabled =
-            false;
-
-
-        return penetrationProbe;
-    }
-
-
-    bool IsOwnCollider(
-        Collider col)
-    {
-        if (col == null)
-        {
-            return true;
-        }
-
-
-        return
-            col.transform == transform
-            ||
-            col.GetComponentInParent
-            <UnifiedPhysicsBody>() == this;
-    }
-
-
-    float GetSeparationOffset(
-        CollisionBox box)
-    {
-        float multiplier =
-            GetPartMultiplier(
-                box,
-                box != null
-                ? box.separationMultiplier
-                : 1f,
-                wheelSeparationMultiplier
-            );
-
-
-        return separationOffset *
-               multiplier;
-    }
-
-
-    float GetPenetrationPadding(
-        CollisionBox box)
-    {
-        float multiplier =
-            GetPartMultiplier(
-                box,
-                box != null
-                ? box.penetrationMultiplier
-                : 1f,
-                wheelPenetrationMultiplier
-            );
-
-
-        return penetrationPadding *
-               multiplier;
-    }
-
-
-    float GetPartMultiplier(
-        CollisionBox box,
-        float boxMultiplier,
-        float wheelMultiplier)
-    {
-        if (box == null)
-        {
-            return 1f;
-        }
-
-
-        float multiplier =
-            boxMultiplier <= 0f
-            ? 1f
-            : boxMultiplier;
-
-
-        if (
-            useVehiclePartResponse
-            &&
-            IsWheelPart(
-                box.part
-            )
-        )
-        {
-            multiplier *=
-                wheelMultiplier <= 0f
-                ? 1f
-                : wheelMultiplier;
-        }
-
-
-        return multiplier;
-    }
-
-
-    bool IsWheelPart(
-        CollisionBoxPart part)
-    {
-        return
-            part == CollisionBoxPart.FrontWheel
-            ||
-            part == CollisionBoxPart.RearWheel;
-    }
-
     /*
     ==========================
         FORCE INTEGRATION
@@ -787,14 +505,34 @@ public class UnifiedPhysicsBody :
             accumulatedForce;
 
 
-        if (
-            useGravity &&
-            !grounded
-        )
+        if (useGravity)
         {
-            totalForce +=
-                gravity *
-                mass;
+            if (!grounded)
+            {
+                totalForce +=
+                    gravity *
+                    mass;
+            }
+            else if (useSlopePhysics)
+            {
+                Vector3 slopeGravity =
+                    Vector3.ProjectOnPlane(
+                        gravity,
+                        groundNormal
+                    ) *
+                    slopeGravityMultiplier;
+
+
+                totalForce +=
+                    slopeGravity *
+                    mass;
+
+
+                totalForce +=
+                    -groundNormal *
+                    groundedGravity *
+                    mass;
+            }
         }
 
 
@@ -806,6 +544,39 @@ public class UnifiedPhysicsBody :
         velocity +=
             acceleration *
             dt;
+
+
+        if (
+            useParabolicMotion
+            &&
+            !grounded
+            &&
+            maxFallSpeed > 0f
+        )
+        {
+            Vector3 gravityDirection =
+                gravity.sqrMagnitude > 0.0001f
+                ? gravity.normalized
+                : Vector3.down;
+
+
+            float fallSpeed =
+                Vector3.Dot(
+                    velocity,
+                    gravityDirection
+                );
+
+
+            if (fallSpeed > maxFallSpeed)
+            {
+                velocity -=
+                    gravityDirection *
+                    (
+                        fallSpeed -
+                        maxFallSpeed
+                    );
+            }
+        }
 
 
         float damping =
@@ -962,7 +733,7 @@ public class UnifiedPhysicsBody :
             float correction =
                 bestDistance
                 -
-                groundStickOffset;
+                GetGroundStickOffset();
 
 
             if (
@@ -970,8 +741,7 @@ public class UnifiedPhysicsBody :
             )
             {
                 transform.position -=
-                    Vector3.up
-                    *
+                    groundNormal *
                     correction;
             }
         }
@@ -983,11 +753,37 @@ public class UnifiedPhysicsBody :
         if (
             cancelDownwardVelocity
             &&
-            velocity.y < 0f
+            Vector3.Dot(
+                velocity,
+                -groundNormal
+            ) > 0f
         )
         {
-            velocity.y = 0f;
+            velocity =
+                Vector3.ProjectOnPlane(
+                    velocity,
+                    groundNormal
+                );
         }
+    }
+
+
+    float GetGroundStickOffset()
+    {
+        if (
+            useWheelGroundSupport
+            &&
+            HasWheelBoxes()
+        )
+        {
+            return Mathf.Max(
+                groundStickOffset,
+                wheelGroundClearance
+            );
+        }
+
+
+        return groundStickOffset;
     }
 
     /*
@@ -1380,10 +1176,49 @@ public class UnifiedPhysicsBody :
             paralelo a la superficie.
             */
 
-            velocity =
+            Vector3 tangentVelocity =
                 Vector3.ProjectOnPlane(
                     velocity,
                     normal
+                );
+
+
+            if (useSlopePhysics)
+            {
+                Vector3 downhill =
+                    Vector3.ProjectOnPlane(
+                        gravity,
+                        normal
+                    );
+
+
+                if (downhill.sqrMagnitude > 0.0001f)
+                {
+                    float downhillSpeed =
+                        Vector3.Dot(
+                            tangentVelocity,
+                            downhill.normalized
+                        );
+
+
+                    if (downhillSpeed > 0f)
+                    {
+                        tangentVelocity -=
+                            downhill.normalized *
+                            downhillSpeed *
+                            Mathf.Clamp01(
+                                slopeGrip
+                            );
+                    }
+                }
+            }
+
+
+            velocity =
+                tangentVelocity *
+                Mathf.Clamp01(
+                    1f -
+                    groundFriction
                 );
 
 
@@ -1448,16 +1283,47 @@ public class UnifiedPhysicsBody :
         }
 
 
-        /*
-        Rebote usando restitution.
-        */
+        Vector3 wallTangent =
+            Vector3.ProjectOnPlane(
+                velocity,
+                normal
+            );
 
-        velocity -=
-            (1f + restitution)
-            *
-            impact
-            *
-            normal;
+
+        wallTangent *=
+            Mathf.Clamp01(
+                1f -
+                wallFriction
+            );
+
+
+        float bounce =
+            -impact >= minBounceSpeed
+            ? restitution
+            : 0f;
+
+
+        velocity =
+            wallTangent
+            -
+            normal *
+            impact *
+            bounce;
+
+
+        if (
+            antiStickOutwardSpeed > 0f
+            &&
+            Vector3.Dot(
+                velocity,
+                normal
+            ) < antiStickOutwardSpeed
+        )
+        {
+            velocity +=
+                normal *
+                antiStickOutwardSpeed;
+        }
 
 
         /*
@@ -1544,6 +1410,81 @@ public class UnifiedPhysicsBody :
 
         other.velocity -=
             impulse / other.mass;
+
+
+        Vector3 tangentVelocity =
+            relativeVelocity
+            -
+            normal *
+            speed;
+
+
+        if (tangentVelocity.sqrMagnitude > 0.0001f)
+        {
+            float friction =
+                Mathf.Min(
+                    bodyFriction,
+                    other.bodyFriction
+                );
+
+
+            float inverseMassSum =
+                (1f / mass)
+                +
+                (1f / other.mass);
+
+
+            float reducedMass =
+                1f / inverseMassSum;
+
+
+            Vector3 frictionImpulse =
+                -tangentVelocity.normalized *
+                Mathf.Min(
+                    tangentVelocity.magnitude *
+                    reducedMass *
+                    friction,
+                    impulseStrength *
+                    friction
+                );
+
+
+            velocity +=
+                frictionImpulse / mass;
+
+
+            other.velocity -=
+                frictionImpulse / other.mass;
+        }
+
+
+        if (antiStickOutwardSpeed > 0f)
+        {
+            float outward =
+                Vector3.Dot(
+                    velocity - other.velocity,
+                    normal
+                );
+
+
+            if (outward < antiStickOutwardSpeed)
+            {
+                Vector3 correction =
+                    normal *
+                    (
+                        antiStickOutwardSpeed -
+                        outward
+                    );
+
+
+                velocity +=
+                    correction * 0.5f;
+
+
+                other.velocity -=
+                    correction * 0.5f;
+            }
+        }
 
 
         velocity *=
