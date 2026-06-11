@@ -132,7 +132,8 @@ GameObject:
   - component: {fileID: 37482032}
   - component: {fileID: 37482030}
   - component: {fileID: 37482035}
-  m_Layer: 0
+  - component: {fileID: 37482036}
+  m_Layer: 7
   m_Name: HeavyWall
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -151,56 +152,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eb43d7ef2bf181449957e19ba362f43e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HeavyWall
-  isStatic: 0
-  mass: 10000
-  restitution: 0.05
-  drag: 0.02
-  groundFriction: 0.08
-  wallFriction: 0.04
-  bodyFriction: 0.06
-  minBounceSpeed: 0.75
-  antiStickOutwardSpeed: 0.05
-  collisionDamping: 0.98
-  useGravity: 1
-  gravity: {x: 0, y: -9.81, z: 0}
-  useParabolicMotion: 1
-  maxFallSpeed: 80
-  useSlopePhysics: 1
-  slopeGravityMultiplier: 1
-  slopeGrip: 0.35
-  groundedGravity: 0.5
-  velocity: {x: 0, y: 0, z: 0}
-  acceleration: {x: 0, y: 0, z: 0}
-  collisionBoxes: []
-  collisionMask:
-    serializedVersion: 2
-    m_Bits: 1
-  skinWidth: 0.02
-  useVehiclePartResponse: 1
-  wheelSeparationMultiplier: 2
-  wheelPenetrationMultiplier: 2
-  useWheelGroundSupport: 1
-  wheelGroundClearance: 0.03
-  wheelSupportProbeLift: 0.5
-  wheelPenetrationIterations: 6
-  maxGroundAngle: 65
-  grounded: 0
-  groundNormal: {x: 0, y: 1, z: 0}
-  groundCheckDistance: 0.1
-  snapToGround: 1
-  groundStickOffset: 0.01
-  cancelDownwardVelocity: 1
-  movementSubsteps: 3
-  separationOffset: 0.01
-  solvePenetration: 1
-  penetrationPadding: 0.005
-  penetrationIterations: 2
-  speed: 0
-  kineticEnergy: 0
-  momentum: 0
-  contactCount: 0
   fixedWall: 1
-  impactDamping: 0.8
+  breakForceThreshold: 40
+  impactDamping: 0.2
 --- !u!23 &37482032
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -267,7 +221,7 @@ Transform:
   m_GameObject: {fileID: 37482029}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -7.2, y: -33.5, z: 60.9}
+  m_LocalPosition: {x: -7.2, y: -32.24, z: 60.9}
   m_LocalScale: {x: 14.604695, y: 9.17325, z: 1.83465}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -294,6 +248,30 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &37482036
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 37482029}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2eae771bb45e57f41a4da49f08c7bf81, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PhysicsBody
+  velocity: {x: 0, y: 0, z: 0}
+  force: {x: 0, y: 0, z: 0}
+  mass: 10000
+  drag: 0.05
+  restitution: 0.2
+  useGravity: 1
+  isStatic: 0
+  grounded: 0
+  groundNormal: {x: 0, y: 1, z: 0}
+  collisionMask:
+    serializedVersion: 2
+    m_Bits: 1984
 --- !u!1001 &205591021
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -304,27 +282,27 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 467606707261596949, guid: 4230af04511df804387a7cceaf076ad0, type: 3}
       propertyPath: m_Layer
-      value: 0
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 2931769627796077027, guid: 4230af04511df804387a7cceaf076ad0, type: 3}
       propertyPath: m_Layer
-      value: 0
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 3680514594965940939, guid: 4230af04511df804387a7cceaf076ad0, type: 3}
       propertyPath: m_Layer
-      value: 0
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 4703217861904013001, guid: 4230af04511df804387a7cceaf076ad0, type: 3}
       propertyPath: m_Layer
-      value: 0
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 4998835556402702545, guid: 4230af04511df804387a7cceaf076ad0, type: 3}
       propertyPath: m_Layer
-      value: 0
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 5033918040612730547, guid: 4230af04511df804387a7cceaf076ad0, type: 3}
       propertyPath: m_Layer
-      value: 0
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 5110835506996460625, guid: 4230af04511df804387a7cceaf076ad0, type: 3}
       propertyPath: m_RootOrder
@@ -380,19 +358,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5595306355369600747, guid: 4230af04511df804387a7cceaf076ad0, type: 3}
       propertyPath: m_Layer
-      value: 0
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 6708807539724168580, guid: 4230af04511df804387a7cceaf076ad0, type: 3}
       propertyPath: m_Layer
-      value: 0
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 7773748238783629477, guid: 4230af04511df804387a7cceaf076ad0, type: 3}
       propertyPath: m_Layer
-      value: 0
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 7778996846528101292, guid: 4230af04511df804387a7cceaf076ad0, type: 3}
       propertyPath: m_Layer
-      value: 0
+      value: 8
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -400,13 +378,16 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 5595306355369600747, guid: 4230af04511df804387a7cceaf076ad0, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 2096292992}
-    - targetCorrespondingSourceObject: {fileID: 5595306355369600747, guid: 4230af04511df804387a7cceaf076ad0, type: 3}
-      insertIndex: -1
       addedObject: {fileID: 2096292993}
     - targetCorrespondingSourceObject: {fileID: 5595306355369600747, guid: 4230af04511df804387a7cceaf076ad0, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 2096292994}
+      addedObject: {fileID: 2096292992}
+    - targetCorrespondingSourceObject: {fileID: 5595306355369600747, guid: 4230af04511df804387a7cceaf076ad0, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2096292991}
+    - targetCorrespondingSourceObject: {fileID: 5595306355369600747, guid: 4230af04511df804387a7cceaf076ad0, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2096292990}
   m_SourcePrefab: {fileID: 100100000, guid: 4230af04511df804387a7cceaf076ad0, type: 3}
 --- !u!1 &274970978
 GameObject:
@@ -420,7 +401,8 @@ GameObject:
   - component: {fileID: 274970980}
   - component: {fileID: 274970982}
   - component: {fileID: 274970984}
-  m_Layer: 0
+  - component: {fileID: 274970985}
+  m_Layer: 6
   m_Name: Floor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -520,6 +502,30 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: -1.1641532e-10, y: 0, z: 0.000000014901161}
+--- !u!114 &274970985
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 274970978}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2eae771bb45e57f41a4da49f08c7bf81, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PhysicsBody
+  velocity: {x: 0, y: 0, z: 0}
+  force: {x: 0, y: 0, z: 0}
+  mass: 1
+  drag: 0.05
+  restitution: 0.2
+  useGravity: 0
+  isStatic: 1
+  grounded: 0
+  groundNormal: {x: 0, y: 1, z: 0}
+  collisionMask:
+    serializedVersion: 2
+    m_Bits: 1792
 --- !u!1 &296751232
 GameObject:
   m_ObjectHideFlags: 0
@@ -579,7 +585,7 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 5303376421527652297, guid: 4230af04511df804387a7cceaf076ad0, type: 3}
   m_PrefabInstance: {fileID: 205591021}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &405911098
+--- !u!1 &424873525
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -587,232 +593,47 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 405911103}
-  - component: {fileID: 405911102}
-  - component: {fileID: 405911101}
-  - component: {fileID: 405911099}
-  - component: {fileID: 405911104}
+  - component: {fileID: 424873527}
+  - component: {fileID: 424873526}
   m_Layer: 0
-  m_Name: TestCube
+  m_Name: Wind
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &405911099
+--- !u!114 &424873526
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 405911098}
+  m_GameObject: {fileID: 424873525}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 90042b184ff000b4e813f41405249cea, type: 3}
+  m_Script: {fileID: 11500000, guid: 0386f00107c4ff647afcd07f476d682e, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::UnifiedPhysicsBody
-  isStatic: 0
-  mass: 1000
-  restitution: 0.2
-  drag: 0.1
-  groundFriction: 0.08
-  wallFriction: 0.04
-  bodyFriction: 0.06
-  minBounceSpeed: 0.75
-  antiStickOutwardSpeed: 0.05
-  collisionDamping: 0.98
-  useGravity: 1
-  gravity: {x: 0, y: -9.81, z: 0}
-  useParabolicMotion: 1
-  maxFallSpeed: 80
-  useSlopePhysics: 1
-  slopeGravityMultiplier: 1
-  slopeGrip: 0.35
-  groundedGravity: 0.5
-  velocity: {x: 0, y: 0, z: 0}
-  acceleration: {x: 0, y: 0, z: 0}
-  collisionBoxes: []
-  collisionMask:
-    serializedVersion: 2
-    m_Bits: 1
-  skinWidth: 0.02
-  useVehiclePartResponse: 1
-  wheelSeparationMultiplier: 2
-  wheelPenetrationMultiplier: 2
-  useWheelGroundSupport: 1
-  wheelGroundClearance: 0.03
-  wheelSupportProbeLift: 0.5
-  wheelPenetrationIterations: 6
-  maxGroundAngle: 65
-  grounded: 0
-  groundNormal: {x: 0, y: 1, z: 0}
-  groundCheckDistance: 0.1
-  snapToGround: 1
-  groundStickOffset: 0.01
-  cancelDownwardVelocity: 1
-  movementSubsteps: 3
-  separationOffset: 0.01
-  solvePenetration: 1
-  penetrationPadding: 0.005
-  penetrationIterations: 2
-  speed: 0
-  kineticEnergy: 0
-  momentum: 0
-  contactCount: 0
---- !u!23 &405911101
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 405911098}
-  m_Enabled: 1
-  m_CastShadows: 1
-  m_ReceiveShadows: 1
-  m_DynamicOccludee: 1
-  m_StaticShadowCaster: 0
-  m_MotionVectors: 1
-  m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
-  m_RayTracingMode: 2
-  m_RayTraceProcedural: 0
-  m_RayTracingAccelStructBuildFlagsOverride: 0
-  m_RayTracingAccelStructBuildFlags: 1
-  m_SmallMeshCulling: 1
-  m_ForceMeshLod: -1
-  m_MeshLodSelectionBias: 0
-  m_RenderingLayerMask: 1
-  m_RendererPriority: 0
-  m_Materials:
-  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
-  m_StaticBatchInfo:
-    firstSubMesh: 0
-    subMeshCount: 0
-  m_StaticBatchRoot: {fileID: 0}
-  m_ProbeAnchor: {fileID: 0}
-  m_LightProbeVolumeOverride: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_ReceiveGI: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_StitchLightmapSeams: 1
-  m_SelectedEditorRenderState: 3
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: 0.5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_GlobalIlluminationMeshLod: 0
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
-  m_SortingOrder: 0
-  m_MaskInteraction: 0
-  m_AdditionalVertexStreams: {fileID: 0}
---- !u!33 &405911102
-MeshFilter:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 405911098}
-  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!4 &405911103
+  m_EditorClassIdentifier: Assembly-CSharp::Wind
+  windDirection: {x: 1, y: 0, z: 0}
+  strength: 30
+  radius: 20
+  turbulenceStrength: 10
+  turbulenceFrequency: 1
+--- !u!4 &424873527
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 405911098}
+  m_GameObject: {fileID: 424873525}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 13.5, y: -9.9, z: 89.4}
-  m_LocalScale: {x: 14.444, y: 14.444, z: 14.444}
+  m_LocalPosition: {x: -10.78056, y: -38.24385, z: 142.3}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!65 &405911104
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 405911098}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
---- !u!1001 &463805550
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 6220495909852013616, guid: 0e7385c41ec088a468f603698fad0790, type: 3}
-      propertyPath: collisionMask.m_Bits
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 7928572737629759028, guid: 0e7385c41ec088a468f603698fad0790, type: 3}
-      propertyPath: m_Name
-      value: Brick
-      objectReference: {fileID: 0}
-    - target: {fileID: 8199844121685629115, guid: 0e7385c41ec088a468f603698fad0790, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 9.2
-      objectReference: {fileID: 0}
-    - target: {fileID: 8199844121685629115, guid: 0e7385c41ec088a468f603698fad0790, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: -20
-      objectReference: {fileID: 0}
-    - target: {fileID: 8199844121685629115, guid: 0e7385c41ec088a468f603698fad0790, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 79.3
-      objectReference: {fileID: 0}
-    - target: {fileID: 8199844121685629115, guid: 0e7385c41ec088a468f603698fad0790, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 8199844121685629115, guid: 0e7385c41ec088a468f603698fad0790, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8199844121685629115, guid: 0e7385c41ec088a468f603698fad0790, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8199844121685629115, guid: 0e7385c41ec088a468f603698fad0790, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8199844121685629115, guid: 0e7385c41ec088a468f603698fad0790, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8199844121685629115, guid: 0e7385c41ec088a468f603698fad0790, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8199844121685629115, guid: 0e7385c41ec088a468f603698fad0790, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 0e7385c41ec088a468f603698fad0790, type: 3}
 --- !u!1001 &524312775
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -863,15 +684,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1299135149770021847, guid: 7c4c33f28e7c9c6478acf7c0fe58e931, type: 3}
       propertyPath: m_Layer
-      value: 0
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 1443139396836173126, guid: 7c4c33f28e7c9c6478acf7c0fe58e931, type: 3}
       propertyPath: m_Layer
-      value: 0
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 1688595161322616974, guid: 7c4c33f28e7c9c6478acf7c0fe58e931, type: 3}
       propertyPath: m_Layer
-      value: 0
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 1985157920615434412, guid: 7c4c33f28e7c9c6478acf7c0fe58e931, type: 3}
       propertyPath: m_Name
@@ -879,27 +700,27 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1985157920615434412, guid: 7c4c33f28e7c9c6478acf7c0fe58e931, type: 3}
       propertyPath: m_Layer
-      value: 0
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 4452882687687403234, guid: 7c4c33f28e7c9c6478acf7c0fe58e931, type: 3}
       propertyPath: m_Layer
-      value: 0
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 4458206884707210731, guid: 7c4c33f28e7c9c6478acf7c0fe58e931, type: 3}
       propertyPath: m_Layer
-      value: 0
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 6543157979707221612, guid: 7c4c33f28e7c9c6478acf7c0fe58e931, type: 3}
       propertyPath: m_Layer
-      value: 0
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 7294115498378757260, guid: 7c4c33f28e7c9c6478acf7c0fe58e931, type: 3}
       propertyPath: m_Layer
-      value: 0
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 9116845926819567524, guid: 7c4c33f28e7c9c6478acf7c0fe58e931, type: 3}
       propertyPath: m_Layer
-      value: 0
+      value: 8
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -907,7 +728,13 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 1985157920615434412, guid: 7c4c33f28e7c9c6478acf7c0fe58e931, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1196691277}
+      addedObject: {fileID: 1196691281}
+    - targetCorrespondingSourceObject: {fileID: 1985157920615434412, guid: 7c4c33f28e7c9c6478acf7c0fe58e931, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1196691280}
+    - targetCorrespondingSourceObject: {fileID: 1985157920615434412, guid: 7c4c33f28e7c9c6478acf7c0fe58e931, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1196691279}
   m_SourcePrefab: {fileID: 100100000, guid: 7c4c33f28e7c9c6478acf7c0fe58e931, type: 3}
 --- !u!1 &884376799
 GameObject:
@@ -1185,59 +1012,36 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::UnifiedPhysicsBody
   isStatic: 1
   mass: 1000
-  restitution: 0.2
   drag: 0.1
-  groundFriction: 0.08
-  wallFriction: 0.04
-  bodyFriction: 0.06
-  minBounceSpeed: 0.75
-  antiStickOutwardSpeed: 0.05
-  collisionDamping: 0.98
+  restitution: 0.2
   useGravity: 1
   gravity: {x: 0, y: -9.81, z: 0}
-  useParabolicMotion: 1
-  maxFallSpeed: 80
-  useSlopePhysics: 1
-  slopeGravityMultiplier: 1
-  slopeGrip: 0.35
-  groundedGravity: 0.5
   velocity: {x: 0, y: 0, z: 0}
-  acceleration: {x: 0, y: 0, z: 0}
-  collisionBoxes:
-  - enabled: 1
-    part: 0
-    center: {x: 0, y: 0, z: 0}
-    rotation: {x: 0, y: 0, z: 0}
-    size: {x: 1, y: 1, z: 1}
-    separationMultiplier: 1
-    penetrationMultiplier: 1
+  forceAccum: {x: 0, y: 0, z: 0}
   collisionMask:
-    serializedVersion: 2
     m_Bits: 4294967295
   skinWidth: 0.02
-  useVehiclePartResponse: 1
-  wheelSeparationMultiplier: 2
-  wheelPenetrationMultiplier: 2
-  useWheelGroundSupport: 1
-  wheelGroundClearance: 0.03
-  wheelSupportProbeLift: 0.5
-  wheelPenetrationIterations: 6
-  maxGroundAngle: 65
+  substeps: 3
   grounded: 0
   groundNormal: {x: 0, y: 1, z: 0}
-  groundCheckDistance: 0.1
-  snapToGround: 1
-  groundStickOffset: 0.01
-  cancelDownwardVelocity: 1
-  movementSubsteps: 3
-  separationOffset: 0.01
-  solvePenetration: 1
-  penetrationPadding: 0.005
-  penetrationIterations: 2
-  speed: 0
-  kineticEnergy: 0
-  momentum: 0
-  contactCount: 0
+  groundCheckDistance: 0.6
+  collisionBoxes:
+  - center: {x: -15.734882, y: -4.8778877, z: -15.609001}
+    size: {x: 15.734882, y: 4.8778877, z: 15.609001}
+  - center: {x: -15.734882, y: -4.8778877, z: 0}
+    size: {x: 15.734882, y: 4.8778877, z: 15.609001}
+  - center: {x: 0, y: -4.8778877, z: -15.609001}
+    size: {x: 15.734882, y: 4.8778877, z: 15.609001}
+  - center: {x: 0, y: -4.8778877, z: 0}
+    size: {x: 15.734882, y: 4.8778877, z: 15.609001}
+  - center: {x: -15.734882, y: 0, z: -15.609001}
+    size: {x: 15.734882, y: 4.8778877, z: 15.609001}
+  - center: {x: -15.734882, y: 0, z: 0}
+    size: {x: 15.734882, y: 4.8778877, z: 15.609001}
+  - center: {x: 0, y: 0, z: -15.609001}
+    size: {x: 15.734882, y: 4.8778877, z: 15.609001}
+  - center: {x: 0, y: 0, z: 0}
+    size: {x: 15.734882, y: 4.8778877, z: 15.609001}
 --- !u!4 &1156178265 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5020105437891738592, guid: 4230af04511df804387a7cceaf076ad0, type: 3}
@@ -1248,7 +1052,29 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 1985157920615434412, guid: 7c4c33f28e7c9c6478acf7c0fe58e931, type: 3}
   m_PrefabInstance: {fileID: 524312775}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1196691277
+--- !u!64 &1196691279
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1196691274}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 0}
+--- !u!114 &1196691280
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1260,82 +1086,35 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e5c2128664e033149b0e6e07bde0b368, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VehicleController
-  isStatic: 0
-  mass: 1200
-  restitution: 0.05
-  drag: 0.1
-  groundFriction: 0.08
-  wallFriction: 0.04
-  bodyFriction: 0.06
-  minBounceSpeed: 0.75
-  antiStickOutwardSpeed: 0.05
-  collisionDamping: 0.98
-  useGravity: 1
-  gravity: {x: 0, y: -9.81, z: 0}
-  useParabolicMotion: 1
-  maxFallSpeed: 80
-  useSlopePhysics: 1
-  slopeGravityMultiplier: 1
-  slopeGrip: 0.35
-  groundedGravity: 0.5
+  body: {fileID: 1196691281}
+  acceleration: 20
+  brake: 25
+  maxSpeed: 35
+  steering: 140
+--- !u!114 &1196691281
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1196691274}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2eae771bb45e57f41a4da49f08c7bf81, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PhysicsBody
   velocity: {x: 0, y: 0, z: 0}
-  acceleration: {x: 0, y: 0, z: 0}
-  collisionBoxes:
-  - enabled: 1
-    part: 0
-    center: {x: 0, y: -0.03, z: -0.11}
-    rotation: {x: 0, y: 0, z: 0}
-    size: {x: 2.96, y: 1.3, z: 6.02}
-    separationMultiplier: 0
-    penetrationMultiplier: 0
-  - enabled: 1
-    part: 1
-    center: {x: 0, y: -1.01, z: 1.82}
-    rotation: {x: 0, y: 0, z: 0}
-    size: {x: 3.16, y: 1.43, z: 1.56}
-    separationMultiplier: 0
-    penetrationMultiplier: 0
-  - enabled: 1
-    part: 2
-    center: {x: 0, y: -1.01, z: -1.79}
-    rotation: {x: 0, y: 0, z: 0}
-    size: {x: 3.16, y: 1.43, z: 1.56}
-    separationMultiplier: 0
-    penetrationMultiplier: 0
+  force: {x: 0, y: 0, z: 0}
+  mass: 1200
+  drag: 0.08
+  restitution: 0.1
+  useGravity: 1
+  isStatic: 0
+  grounded: 0
+  groundNormal: {x: 0, y: 1, z: 0}
   collisionMask:
     serializedVersion: 2
-    m_Bits: 1
-  skinWidth: 0.02
-  useVehiclePartResponse: 1
-  wheelSeparationMultiplier: 2
-  wheelPenetrationMultiplier: 2
-  useWheelGroundSupport: 1
-  wheelGroundClearance: 0.03
-  wheelSupportProbeLift: 0.5
-  wheelPenetrationIterations: 6
-  maxGroundAngle: 65
-  grounded: 1
-  groundNormal: {x: 0, y: 1, z: 0}
-  groundCheckDistance: 0.1
-  snapToGround: 1
-  groundStickOffset: 0.01
-  cancelDownwardVelocity: 1
-  movementSubsteps: 3
-  separationOffset: 0.01
-  solvePenetration: 1
-  penetrationPadding: 0.005
-  penetrationIterations: 2
-  speed: 0
-  kineticEnergy: 0
-  momentum: 0
-  contactCount: 0
-  engineForce: 8
-  maxSpeed: 35
-  steeringSpeed: 120
-  allowAirSteering: 1
-  airSteeringMultiplier: 0.3
-  alignmentSpeed: 8
-  playerControlled: 0
+    m_Bits: 1984
 --- !u!1 &1679070032
 GameObject:
   m_ObjectHideFlags: 0
@@ -1490,6 +1269,54 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1874304062
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1874304064}
+  - component: {fileID: 1874304063}
+  m_Layer: 0
+  m_Name: PhysicsWorld
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1874304063
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1874304062}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9a31e35c601064845a94e74d37bad981, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PhysicsSolver
+  gravity: {x: 0, y: -9.81, z: 0}
+  skinWidth: 0.02
+  substeps: 3
+  groundDistance: 0.6
+--- !u!4 &1874304064
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1874304062}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 22.81076, y: -37.9874, z: 93.77487}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2096292985 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 5595306355369600747, guid: 4230af04511df804387a7cceaf076ad0, type: 3}
@@ -1500,6 +1327,47 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 5110835506996460625, guid: 4230af04511df804387a7cceaf076ad0, type: 3}
   m_PrefabInstance: {fileID: 205591021}
   m_PrefabAsset: {fileID: 0}
+--- !u!64 &2096292990
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2096292985}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 0}
+--- !u!114 &2096292991
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2096292985}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e65a4303407205248ae0babdc881bf30, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WheelAnimator
+  vehicle: {fileID: 2096292993}
+  frontWheel: {fileID: 381942575}
+  rearWheel: {fileID: 1156178265}
+  rotationMultiplier: 1
+  maxSteeringAngle: 30
+  rollingAxis: {x: 1, y: 0, z: 0}
+  steeringAxis: {x: 0, y: 1, z: 0}
 --- !u!114 &2096292992
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1512,61 +1380,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e5c2128664e033149b0e6e07bde0b368, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VehicleController
-  isStatic: 0
-  mass: 1200
-  restitution: 0.15
-  drag: 0.05
-  groundFriction: 0.08
-  wallFriction: 0.04
-  bodyFriction: 0.06
-  minBounceSpeed: 0.75
-  antiStickOutwardSpeed: 0.05
-  collisionDamping: 0.98
-  useGravity: 1
-  gravity: {x: 0, y: -9.81, z: 0}
-  useParabolicMotion: 1
-  maxFallSpeed: 80
-  useSlopePhysics: 1
-  slopeGravityMultiplier: 1
-  slopeGrip: 0.35
-  groundedGravity: 0.5
-  velocity: {x: 0, y: 0, z: 0}
-  acceleration: {x: 0, y: 0, z: 0}
-  collisionBoxes: []
-  collisionMask:
-    serializedVersion: 2
-    m_Bits: 1
-  skinWidth: 0.02
-  useVehiclePartResponse: 1
-  wheelSeparationMultiplier: 2
-  wheelPenetrationMultiplier: 2
-  useWheelGroundSupport: 1
-  wheelGroundClearance: 0.03
-  wheelSupportProbeLift: 0.5
-  wheelPenetrationIterations: 6
-  maxGroundAngle: 65
-  grounded: 1
-  groundNormal: {x: 0, y: 1, z: 0}
-  groundCheckDistance: 0.1
-  snapToGround: 1
-  groundStickOffset: 0.01
-  cancelDownwardVelocity: 1
-  movementSubsteps: 3
-  separationOffset: 0.01
-  solvePenetration: 1
-  penetrationPadding: 0.005
-  penetrationIterations: 2
-  speed: 0
-  kineticEnergy: 0
-  momentum: 0
-  contactCount: 0
-  engineForce: 8
+  body: {fileID: 2096292993}
+  acceleration: 20
+  brake: 25
   maxSpeed: 35
-  steeringSpeed: 120
-  allowAirSteering: 1
-  airSteeringMultiplier: 1
-  alignmentSpeed: 8
-  playerControlled: 1
+  steering: 140
 --- !u!114 &2096292993
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1576,97 +1394,21 @@ MonoBehaviour:
   m_GameObject: {fileID: 2096292985}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 90042b184ff000b4e813f41405249cea, type: 3}
+  m_Script: {fileID: 11500000, guid: 2eae771bb45e57f41a4da49f08c7bf81, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::UnifiedPhysicsBody
-  isStatic: 0
-  mass: 1000
-  restitution: 0.2
-  drag: 0.1
-  groundFriction: 0.08
-  wallFriction: 0.04
-  bodyFriction: 0.06
-  minBounceSpeed: 0.75
-  antiStickOutwardSpeed: 0.05
-  collisionDamping: 0.98
-  useGravity: 1
-  gravity: {x: 0, y: -9.81, z: 0}
-  useParabolicMotion: 1
-  maxFallSpeed: 80
-  useSlopePhysics: 1
-  slopeGravityMultiplier: 1
-  slopeGrip: 0.35
-  groundedGravity: 0.5
+  m_EditorClassIdentifier: Assembly-CSharp::PhysicsBody
   velocity: {x: 0, y: 0, z: 0}
-  acceleration: {x: 0, y: 0, z: 0}
-  collisionBoxes:
-  - enabled: 1
-    part: 0
-    center: {x: 0, y: 1.17, z: 0}
-    rotation: {x: 0, y: 0, z: 0}
-    size: {x: 1.59, y: 2.84, z: 5.84}
-    separationMultiplier: 0
-    penetrationMultiplier: 0
-  - enabled: 1
-    part: 1
-    center: {x: 0, y: -0.84, z: 2.23}
-    rotation: {x: 0, y: 0, z: 0}
-    size: {x: 3.53, y: 1.6, z: 1.9}
-    separationMultiplier: 0
-    penetrationMultiplier: 1
-  - enabled: 1
-    part: 2
-    center: {x: 0, y: -0.84, z: -2.14}
-    rotation: {x: 0, y: 0, z: 0}
-    size: {x: 3.53, y: 1.6, z: 1.9}
-    separationMultiplier: 0
-    penetrationMultiplier: 1
-  collisionMask:
-    serializedVersion: 2
-    m_Bits: 1
-  skinWidth: 0.02
-  useVehiclePartResponse: 1
-  wheelSeparationMultiplier: 2
-  wheelPenetrationMultiplier: 2
-  useWheelGroundSupport: 1
-  wheelGroundClearance: 0.03
-  wheelSupportProbeLift: 0.5
-  wheelPenetrationIterations: 6
-  maxGroundAngle: 65
+  force: {x: 0, y: 0, z: 0}
+  mass: 1500
+  drag: 0.05
+  restitution: 0.2
+  useGravity: 1
+  isStatic: 0
   grounded: 0
   groundNormal: {x: 0, y: 1, z: 0}
-  groundCheckDistance: 0.1
-  snapToGround: 1
-  groundStickOffset: 0.01
-  cancelDownwardVelocity: 1
-  movementSubsteps: 3
-  separationOffset: 0.01
-  solvePenetration: 1
-  penetrationPadding: 0.005
-  penetrationIterations: 2
-  speed: 0
-  kineticEnergy: 0
-  momentum: 0
-  contactCount: 0
---- !u!114 &2096292994
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2096292985}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e65a4303407205248ae0babdc881bf30, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::WheelAnimator
-  vehicle: {fileID: 2096292992}
-  frontWheel: {fileID: 381942575}
-  rearWheel: {fileID: 1156178265}
-  rotationMultiplier: 800
-  maxSteeringAngle: 30
-  rollingAxis: {x: 1, y: 0, z: 0}
-  steeringAxis: {x: 0, y: 1, z: 0}
+  collisionMask:
+    serializedVersion: 2
+    m_Bits: 1984
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -1679,5 +1421,5 @@ SceneRoots:
   - {fileID: 274970981}
   - {fileID: 524312775}
   - {fileID: 1006198288}
-  - {fileID: 405911103}
-  - {fileID: 463805550}
+  - {fileID: 1874304064}
+  - {fileID: 424873527}
