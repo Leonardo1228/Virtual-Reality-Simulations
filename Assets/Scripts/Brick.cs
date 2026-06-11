@@ -26,7 +26,7 @@ public class Brick : MonoBehaviour
             body.drag = 0f;
             body.restitution = 0.2f;
             body.isStatic = true;
-            body.useGravity = false;
+
         }
     }
 
@@ -58,7 +58,6 @@ public class Brick : MonoBehaviour
         if (body == null) return;
 
         body.isStatic = false;
-        body.useGravity = true;
 
         body.velocity += impulse / Mathf.Max(0.001f, body.mass);
     }

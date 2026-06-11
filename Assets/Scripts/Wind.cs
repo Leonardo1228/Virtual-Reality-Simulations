@@ -32,7 +32,7 @@ public class Wind : MonoBehaviour
                 continue;
 
             // =========================
-            // FALL OFF (GTA STYLE)
+            // FALL OFF 
             // =========================
             float t = 1f - (distance / radius);
             t = Mathf.SmoothStep(0f, 1f, t);
@@ -64,7 +64,25 @@ public class Wind : MonoBehaviour
                 t *
                 massFactor;
 
-            body.force += force;
         }
+    }
+    void OnDrawGizmos()
+    {
+        if (!enabled) return;
+
+        // esfera de influencia
+        Gizmos.color = new Color(0f, 1f, 1f, 0.6f);
+        Gizmos.DrawWireSphere(transform.position, radius);
+
+        // dirección del viento (más visible)
+        Gizmos.color = Color.blue;
+        Vector3 dir = windDirection.normalized;
+
+        Gizmos.DrawLine(transform.position, transform.position + dir * radius);
+
+        // flecha simple (punta visual)
+        Vector3 right = Vector3.Cross(Vector3.up, dir) * 0.2f;
+        Gizmos.DrawLine(transform.position + dir * radius, transform.position + dir * radius - dir * 0.5f + right);
+        Gizmos.DrawLine(transform.position + dir * radius, transform.position + dir * radius - dir * 0.5f - right);
     }
 }

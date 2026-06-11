@@ -221,7 +221,7 @@ Transform:
   m_GameObject: {fileID: 37482029}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -7.2, y: -32.24, z: 60.9}
+  m_LocalPosition: {x: -7.2, y: -30.6, z: 60.9}
   m_LocalScale: {x: 14.604695, y: 9.17325, z: 1.83465}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -261,17 +261,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PhysicsBody
   velocity: {x: 0, y: 0, z: 0}
-  force: {x: 0, y: 0, z: 0}
   mass: 10000
   drag: 0.05
   restitution: 0.2
-  useGravity: 1
-  isStatic: 0
-  grounded: 0
+  grounded: 1
   groundNormal: {x: 0, y: 1, z: 0}
-  collisionMask:
-    serializedVersion: 2
-    m_Bits: 1984
+  isStatic: 0
 --- !u!1001 &205591021
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -400,8 +395,7 @@ GameObject:
   - component: {fileID: 274970981}
   - component: {fileID: 274970980}
   - component: {fileID: 274970982}
-  - component: {fileID: 274970984}
-  - component: {fileID: 274970985}
+  - component: {fileID: 274970983}
   m_Layer: 6
   m_Name: Floor
   m_TagString: Untagged
@@ -481,7 +475,7 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!65 &274970984
+--- !u!65 &274970983
 BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -501,31 +495,7 @@ BoxCollider:
   m_Enabled: 1
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: -1.1641532e-10, y: 0, z: 0.000000014901161}
---- !u!114 &274970985
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 274970978}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2eae771bb45e57f41a4da49f08c7bf81, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PhysicsBody
-  velocity: {x: 0, y: 0, z: 0}
-  force: {x: 0, y: 0, z: 0}
-  mass: 1
-  drag: 0.05
-  restitution: 0.2
-  useGravity: 0
-  isStatic: 1
-  grounded: 0
-  groundNormal: {x: 0, y: 1, z: 0}
-  collisionMask:
-    serializedVersion: 2
-    m_Bits: 1792
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &296751232
 GameObject:
   m_ObjectHideFlags: 0
@@ -876,7 +846,6 @@ GameObject:
   - component: {fileID: 1006198286}
   - component: {fileID: 1006198285}
   - component: {fileID: 1006198284}
-  - component: {fileID: 1006198289}
   m_Layer: 6
   m_Name: Slope
   m_TagString: Untagged
@@ -998,50 +967,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 15.74}
---- !u!114 &1006198289
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1006198283}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 90042b184ff000b4e813f41405249cea, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::UnifiedPhysicsBody
-  isStatic: 1
-  mass: 1000
-  drag: 0.1
-  restitution: 0.2
-  useGravity: 1
-  gravity: {x: 0, y: -9.81, z: 0}
-  velocity: {x: 0, y: 0, z: 0}
-  forceAccum: {x: 0, y: 0, z: 0}
-  collisionMask:
-    m_Bits: 4294967295
-  skinWidth: 0.02
-  substeps: 3
-  grounded: 0
-  groundNormal: {x: 0, y: 1, z: 0}
-  groundCheckDistance: 0.6
-  collisionBoxes:
-  - center: {x: -15.734882, y: -4.8778877, z: -15.609001}
-    size: {x: 15.734882, y: 4.8778877, z: 15.609001}
-  - center: {x: -15.734882, y: -4.8778877, z: 0}
-    size: {x: 15.734882, y: 4.8778877, z: 15.609001}
-  - center: {x: 0, y: -4.8778877, z: -15.609001}
-    size: {x: 15.734882, y: 4.8778877, z: 15.609001}
-  - center: {x: 0, y: -4.8778877, z: 0}
-    size: {x: 15.734882, y: 4.8778877, z: 15.609001}
-  - center: {x: -15.734882, y: 0, z: -15.609001}
-    size: {x: 15.734882, y: 4.8778877, z: 15.609001}
-  - center: {x: -15.734882, y: 0, z: 0}
-    size: {x: 15.734882, y: 4.8778877, z: 15.609001}
-  - center: {x: 0, y: 0, z: -15.609001}
-    size: {x: 15.734882, y: 4.8778877, z: 15.609001}
-  - center: {x: 0, y: 0, z: 0}
-    size: {x: 15.734882, y: 4.8778877, z: 15.609001}
 --- !u!4 &1156178265 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5020105437891738592, guid: 4230af04511df804387a7cceaf076ad0, type: 3}
@@ -1104,17 +1029,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PhysicsBody
   velocity: {x: 0, y: 0, z: 0}
-  force: {x: 0, y: 0, z: 0}
   mass: 1200
   drag: 0.08
   restitution: 0.1
-  useGravity: 1
-  isStatic: 0
-  grounded: 0
+  grounded: 1
   groundNormal: {x: 0, y: 1, z: 0}
-  collisionMask:
-    serializedVersion: 2
-    m_Bits: 1984
+  isStatic: 0
 --- !u!1 &1679070032
 GameObject:
   m_ObjectHideFlags: 0
@@ -1278,7 +1198,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1874304064}
-  - component: {fileID: 1874304063}
+  - component: {fileID: 1874304065}
   m_Layer: 0
   m_Name: PhysicsWorld
   m_TagString: Untagged
@@ -1286,22 +1206,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1874304063
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1874304062}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9a31e35c601064845a94e74d37bad981, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PhysicsSolver
-  gravity: {x: 0, y: -9.81, z: 0}
-  skinWidth: 0.02
-  substeps: 3
-  groundDistance: 0.6
 --- !u!4 &1874304064
 Transform:
   m_ObjectHideFlags: 0
@@ -1317,6 +1221,24 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1874304065
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1874304062}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9a31e35c601064845a94e74d37bad981, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UnifiedPhysicsBody
+  gravity: -9.81
+  substeps: 4
+  skin: 1.1
+  mask:
+    serializedVersion: 2
+    m_Bits: 1984
 --- !u!1 &2096292985 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 5595306355369600747, guid: 4230af04511df804387a7cceaf076ad0, type: 3}
@@ -1398,17 +1320,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PhysicsBody
   velocity: {x: 0, y: 0, z: 0}
-  force: {x: 0, y: 0, z: 0}
   mass: 1500
   drag: 0.05
   restitution: 0.2
-  useGravity: 1
-  isStatic: 0
-  grounded: 0
+  grounded: 1
   groundNormal: {x: 0, y: 1, z: 0}
-  collisionMask:
-    serializedVersion: 2
-    m_Bits: 1984
+  isStatic: 0
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

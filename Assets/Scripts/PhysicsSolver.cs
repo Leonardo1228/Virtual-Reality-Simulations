@@ -3,124 +3,94 @@ using System.Collections.Generic;
 
 public class PhysicsSolver : MonoBehaviour
 {
-    public static PhysicsSolver Instance;
+    public static List<PhysicsBody> bodies = new();
 
-    public Vector3 gravity = new Vector3(0, -9.81f, 0);
-    public float skinWidth = 0.02f;
-    public int substeps = 3;
-    public float groundDistance = 0.6f;
+    public float gravity = -9.81f;
+    public int substeps = 4;
+    public float skin = 0.02f;
+    public LayerMask mask;
 
-    private PhysicsBody[] bodies;
-
-    void Awake()
+    public static void Register(PhysicsBody b)
     {
-        Instance = this;
+        if (!bodies.Contains(b))
+            bodies.Add(b);
+    }
+
+    public static void Unregister(PhysicsBody b)
+    {
+        bodies.Remove(b);
     }
 
     void FixedUpdate()
     {
-        bodies = FindObjectsOfType<PhysicsBody>();
-
         float dt = Time.fixedDeltaTime;
+
+        foreach (var b in bodies)
+        {
+            if (b == null || b.isStatic) continue;
+
+            Step(b, dt);
+        }
+    }
+
+    void Step(PhysicsBody b, float dt)
+    {
         float step = dt / substeps;
 
         for (int i = 0; i < substeps; i++)
         {
-            Simulate(step);
+            ApplyForces(b, step);
+            Move(b, step);
+            Ground(b);
         }
     }
 
-    void Simulate(float dt)
+    void ApplyForces(PhysicsBody b, float dt)
     {
-        // =========================
-        // 1. APPLY FORCES
-        // =========================
-        foreach (var b in bodies)
-        {
-            if (b == null || b.isStatic) continue;
+        b.velocity.y += gravity * dt;
 
-            if (b.useGravity)
-                b.velocity += gravity * dt;
-
-            b.velocity += b.force / Mathf.Max(0.001f, b.mass);
-            b.force = Vector3.zero;
-
-            b.velocity *= 1f / (1f + b.drag * dt);
-        }
-
-        // =========================
-        // 2. MOVE
-        // =========================
-        foreach (var b in bodies)
-        {
-            if (b == null || b.isStatic) continue;
-
-            Vector3 move = b.velocity * dt;
-
-            if (move.sqrMagnitude < 0.000001f)
-                continue;
-
-            ResolveMovement(b, move);
-        }
-
-        // =========================
-        // 3. GROUND CHECK
-        // =========================
-        foreach (var b in bodies)
-        {
-            if (b == null || b.isStatic) continue;
-
-            GroundCheck(b);
-        }
+        float d = 1f / (1f + b.drag * dt);
+        b.velocity *= d;
     }
-    void ResolveMovement(PhysicsBody b, Vector3 move)
+
+    void Move(PhysicsBody b, float dt)
     {
+        Vector3 move = b.velocity * dt;
+
+        if (move.sqrMagnitude < 0.000001f)
+            return;
+
         Vector3 dir = move.normalized;
         float dist = move.magnitude;
 
-        if (Physics.BoxCast(
-            b.transform.position,
-            Vector3.one * 0.5f,
-            dir,
-            out RaycastHit hit,
-            b.transform.rotation,
-            dist + skinWidth,
-            b.collisionMask))
-        {
-            // posición corregida (SIN huecos)
-            b.transform.position += dir * Mathf.Max(hit.distance - skinWidth, 0f);
+        Vector3 half = b.transform.localScale * 0.5f;
 
-            // slide (GTA feel)
-            b.velocity = Vector3.ProjectOnPlane(b.velocity, hit.normal) * b.restitution;
+        if (Physics.BoxCast(b.transform.position, half, dir,
+            out RaycastHit hit, b.transform.rotation,
+            dist + skin, mask))
+        {
+            float safe = Mathf.Max(hit.distance - skin, 0f);
+
+            b.transform.position += dir * safe;
+
+            b.velocity = Vector3.ProjectOnPlane(b.velocity, hit.normal);
+            b.velocity *= b.restitution;
         }
         else
         {
             b.transform.position += move;
         }
-        if (hit.collider != null)
-        {
-            var wall = hit.collider.GetComponent<HeavyWall>();
-
-            if (wall != null)
-            {
-                wall.ApplyImpact(b.velocity, hit.normal);
-            }
-        }
-        var brick = hit.collider.GetComponent<Brick>();
-
-        if (brick != null)
-        {
-            brick.ApplyImpact(b.velocity, hit.normal);
-        }
     }
-    void GroundCheck(PhysicsBody b)
-    {
-        Vector3 origin = b.transform.position + Vector3.up * 0.2f;
 
-        if (Physics.Raycast(origin, Vector3.down, out RaycastHit hit, groundDistance, b.collisionMask))
+    void Ground(PhysicsBody b)
+    {
+        Vector3 origin = b.transform.position + Vector3.up * 0.1f;
+
+        if (Physics.Raycast(origin, Vector3.down, out RaycastHit hit, 0.3f, mask))
         {
             b.grounded = Vector3.Angle(hit.normal, Vector3.up) < 65f;
-            b.groundNormal = hit.normal;
+            if (b.grounded)
+                b.groundNormal = hit.normal;
         }
         else
         {

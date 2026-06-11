@@ -9,12 +9,12 @@ public class VehicleController : MonoBehaviour
     public float maxSpeed = 35f;
     public float steering = 140f;
 
-    float move;
-    float steer;
-    private float moveInput;
-    private float steerInput;
+    float moveInput;
+    float steerInput;
+
     public float MoveInput => moveInput;
     public float SteerInput => steerInput;
+
     float yaw;
 
     void Start()
@@ -27,8 +27,8 @@ public class VehicleController : MonoBehaviour
 
     void Update()
     {
-        move = Input.GetAxis("Vertical");
-        steer = Input.GetAxis("Horizontal");
+        moveInput = Input.GetAxis("Vertical");
+        steerInput = Input.GetAxis("Horizontal");
 
         Drive();
         Rotate();
@@ -36,37 +36,70 @@ public class VehicleController : MonoBehaviour
 
     void Drive()
     {
-        Vector3 forward = transform.forward;
+        float dt = Time.deltaTime;
 
-        if (move > 0)
-            body.velocity += forward * move * acceleration * Time.deltaTime;
+        Vector3 forward =
+            Quaternion.Euler(0f, yaw, 0f) * Vector3.forward;
 
-        if (move < 0)
-            body.velocity -= forward * brake * Time.deltaTime;
+        forward.y = 0f;
+        forward.Normalize();
 
-        Vector3 flat = new Vector3(body.velocity.x, 0, body.velocity.z);
+        // =========================
+        // ACCELERATION / BRAKE
+        // =========================
+
+        if (moveInput > 0f)
+        {
+            body.velocity += forward * moveInput * acceleration * dt;
+        }
+        else if (moveInput < 0f)
+        {
+            body.velocity -= forward * brake * dt;
+        }
+
+        // =========================
+        // SPEED LIMIT
+        // =========================
+
+        Vector3 flat = new Vector3(body.velocity.x, 0f, body.velocity.z);
 
         if (flat.magnitude > maxSpeed)
         {
             flat = flat.normalized * maxSpeed;
+
             body.velocity.x = flat.x;
             body.velocity.z = flat.z;
         }
 
+        // =========================
+        // STEERING
+        // =========================
+
         float control = body.grounded ? 1f : 0.3f;
-        yaw += steer * steering * control * Time.deltaTime;
+
+        yaw += steerInput * steering * control * dt;
     }
 
     void Rotate()
     {
         Vector3 up = body.grounded ? body.groundNormal : Vector3.up;
 
-        Vector3 forward = Quaternion.Euler(0, yaw, 0) * Vector3.forward;
+        Vector3 forward =
+            Quaternion.Euler(0f, yaw, 0f) * Vector3.forward;
 
-        transform.rotation = Quaternion.Slerp(
-            transform.rotation,
-            Quaternion.LookRotation(Vector3.ProjectOnPlane(forward, up), up),
-            10f * Time.deltaTime
-        );
+        forward = Vector3.ProjectOnPlane(forward, up).normalized;
+
+        if (forward.sqrMagnitude < 0.001f)
+            forward = transform.forward;
+
+        Quaternion target =
+            Quaternion.LookRotation(forward, up);
+
+        transform.rotation =
+            Quaternion.Slerp(
+                transform.rotation,
+                target,
+                10f * Time.deltaTime
+            );
     }
 }

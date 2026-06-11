@@ -39,7 +39,7 @@ public class HeavyWall : MonoBehaviour
         if (body == null) return;
 
         body.isStatic = false;
-        body.useGravity = true;
+
 
         body.velocity += impulse / Mathf.Max(0.001f, body.mass);
     }
@@ -50,6 +50,6 @@ public class HeavyWall : MonoBehaviour
 
         body.velocity = Vector3.zero;
         body.isStatic = true;
-        body.useGravity = false;
+
     }
 }

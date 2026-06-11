@@ -23,7 +23,6 @@ public class TutorialWall : MonoBehaviour
         // fuerza de frenado estilo "zona de resistencia"
         Vector3 slowdown = -body.velocity * slowForce;
 
-        body.force += slowdown;
     }
 
     void OnDrawGizmos()
