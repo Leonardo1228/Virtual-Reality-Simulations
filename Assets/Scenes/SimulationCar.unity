@@ -155,9 +155,20 @@ MonoBehaviour:
   mass: 10000
   restitution: 0.05
   drag: 0.02
+  groundFriction: 0.08
+  wallFriction: 0.04
+  bodyFriction: 0.06
+  minBounceSpeed: 0.75
+  antiStickOutwardSpeed: 0.05
   collisionDamping: 0.98
   useGravity: 1
   gravity: {x: 0, y: -9.81, z: 0}
+  useParabolicMotion: 1
+  maxFallSpeed: 80
+  useSlopePhysics: 1
+  slopeGravityMultiplier: 1
+  slopeGrip: 0.35
+  groundedGravity: 0.5
   velocity: {x: 0, y: 0, z: 0}
   acceleration: {x: 0, y: 0, z: 0}
   collisionBoxes: []
@@ -168,6 +179,10 @@ MonoBehaviour:
   useVehiclePartResponse: 1
   wheelSeparationMultiplier: 2
   wheelPenetrationMultiplier: 2
+  useWheelGroundSupport: 1
+  wheelGroundClearance: 0.03
+  wheelSupportProbeLift: 0.5
+  wheelPenetrationIterations: 6
   maxGroundAngle: 65
   grounded: 0
   groundNormal: {x: 0, y: 1, z: 0}
@@ -600,9 +615,20 @@ MonoBehaviour:
   mass: 1000
   restitution: 0.2
   drag: 0.1
+  groundFriction: 0.08
+  wallFriction: 0.04
+  bodyFriction: 0.06
+  minBounceSpeed: 0.75
+  antiStickOutwardSpeed: 0.05
   collisionDamping: 0.98
   useGravity: 1
   gravity: {x: 0, y: -9.81, z: 0}
+  useParabolicMotion: 1
+  maxFallSpeed: 80
+  useSlopePhysics: 1
+  slopeGravityMultiplier: 1
+  slopeGrip: 0.35
+  groundedGravity: 0.5
   velocity: {x: 0, y: 0, z: 0}
   acceleration: {x: 0, y: 0, z: 0}
   collisionBoxes: []
@@ -613,6 +639,10 @@ MonoBehaviour:
   useVehiclePartResponse: 1
   wheelSeparationMultiplier: 2
   wheelPenetrationMultiplier: 2
+  useWheelGroundSupport: 1
+  wheelGroundClearance: 0.03
+  wheelSupportProbeLift: 0.5
+  wheelPenetrationIterations: 6
   maxGroundAngle: 65
   grounded: 0
   groundNormal: {x: 0, y: 1, z: 0}
@@ -878,9 +908,6 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 1985157920615434412, guid: 7c4c33f28e7c9c6478acf7c0fe58e931, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1196691277}
-    - targetCorrespondingSourceObject: {fileID: 1985157920615434412, guid: 7c4c33f28e7c9c6478acf7c0fe58e931, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1196691279}
   m_SourcePrefab: {fileID: 100100000, guid: 7c4c33f28e7c9c6478acf7c0fe58e931, type: 3}
 --- !u!1 &884376799
 GameObject:
@@ -1022,6 +1049,7 @@ GameObject:
   - component: {fileID: 1006198286}
   - component: {fileID: 1006198285}
   - component: {fileID: 1006198284}
+  - component: {fileID: 1006198289}
   m_Layer: 6
   m_Name: Slope
   m_TagString: Untagged
@@ -1137,12 +1165,79 @@ Transform:
   m_GameObject: {fileID: 1006198283}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: 0.13692988, w: 0.99058074}
-  m_LocalPosition: {x: 47.9, y: -34.6, z: 41.01057}
+  m_LocalPosition: {x: 47.8, y: -34.1, z: 41.01057}
   m_LocalScale: {x: 32.414, y: 1, z: 31.218}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 15.74}
+--- !u!114 &1006198289
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1006198283}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 90042b184ff000b4e813f41405249cea, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UnifiedPhysicsBody
+  isStatic: 1
+  mass: 1000
+  restitution: 0.2
+  drag: 0.1
+  groundFriction: 0.08
+  wallFriction: 0.04
+  bodyFriction: 0.06
+  minBounceSpeed: 0.75
+  antiStickOutwardSpeed: 0.05
+  collisionDamping: 0.98
+  useGravity: 1
+  gravity: {x: 0, y: -9.81, z: 0}
+  useParabolicMotion: 1
+  maxFallSpeed: 80
+  useSlopePhysics: 1
+  slopeGravityMultiplier: 1
+  slopeGrip: 0.35
+  groundedGravity: 0.5
+  velocity: {x: 0, y: 0, z: 0}
+  acceleration: {x: 0, y: 0, z: 0}
+  collisionBoxes:
+  - enabled: 1
+    part: 0
+    center: {x: 0, y: 0, z: 0}
+    rotation: {x: 0, y: 0, z: 0}
+    size: {x: 1, y: 1, z: 1}
+    separationMultiplier: 1
+    penetrationMultiplier: 1
+  collisionMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  skinWidth: 0.02
+  useVehiclePartResponse: 1
+  wheelSeparationMultiplier: 2
+  wheelPenetrationMultiplier: 2
+  useWheelGroundSupport: 1
+  wheelGroundClearance: 0.03
+  wheelSupportProbeLift: 0.5
+  wheelPenetrationIterations: 6
+  maxGroundAngle: 65
+  grounded: 0
+  groundNormal: {x: 0, y: 1, z: 0}
+  groundCheckDistance: 0.1
+  snapToGround: 1
+  groundStickOffset: 0.01
+  cancelDownwardVelocity: 1
+  movementSubsteps: 3
+  separationOffset: 0.01
+  solvePenetration: 1
+  penetrationPadding: 0.005
+  penetrationIterations: 2
+  speed: 0
+  kineticEnergy: 0
+  momentum: 0
+  contactCount: 0
 --- !u!4 &1156178265 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5020105437891738592, guid: 4230af04511df804387a7cceaf076ad0, type: 3}
@@ -1169,9 +1264,20 @@ MonoBehaviour:
   mass: 1200
   restitution: 0.05
   drag: 0.1
+  groundFriction: 0.08
+  wallFriction: 0.04
+  bodyFriction: 0.06
+  minBounceSpeed: 0.75
+  antiStickOutwardSpeed: 0.05
   collisionDamping: 0.98
   useGravity: 1
   gravity: {x: 0, y: -9.81, z: 0}
+  useParabolicMotion: 1
+  maxFallSpeed: 80
+  useSlopePhysics: 1
+  slopeGravityMultiplier: 1
+  slopeGrip: 0.35
+  groundedGravity: 0.5
   velocity: {x: 0, y: 0, z: 0}
   acceleration: {x: 0, y: 0, z: 0}
   collisionBoxes:
@@ -1203,6 +1309,10 @@ MonoBehaviour:
   useVehiclePartResponse: 1
   wheelSeparationMultiplier: 2
   wheelPenetrationMultiplier: 2
+  useWheelGroundSupport: 1
+  wheelGroundClearance: 0.03
+  wheelSupportProbeLift: 0.5
+  wheelPenetrationIterations: 6
   maxGroundAngle: 65
   grounded: 1
   groundNormal: {x: 0, y: 1, z: 0}
@@ -1226,18 +1336,6 @@ MonoBehaviour:
   airSteeringMultiplier: 0.3
   alignmentSpeed: 8
   playerControlled: 0
---- !u!114 &1196691279
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1196691274}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 55bc6bf6b96aa2648b7b7085718dade0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SimulationBody
 --- !u!1 &1679070032
 GameObject:
   m_ObjectHideFlags: 0
@@ -1418,9 +1516,20 @@ MonoBehaviour:
   mass: 1200
   restitution: 0.15
   drag: 0.05
+  groundFriction: 0.08
+  wallFriction: 0.04
+  bodyFriction: 0.06
+  minBounceSpeed: 0.75
+  antiStickOutwardSpeed: 0.05
   collisionDamping: 0.98
   useGravity: 1
   gravity: {x: 0, y: -9.81, z: 0}
+  useParabolicMotion: 1
+  maxFallSpeed: 80
+  useSlopePhysics: 1
+  slopeGravityMultiplier: 1
+  slopeGrip: 0.35
+  groundedGravity: 0.5
   velocity: {x: 0, y: 0, z: 0}
   acceleration: {x: 0, y: 0, z: 0}
   collisionBoxes: []
@@ -1431,6 +1540,10 @@ MonoBehaviour:
   useVehiclePartResponse: 1
   wheelSeparationMultiplier: 2
   wheelPenetrationMultiplier: 2
+  useWheelGroundSupport: 1
+  wheelGroundClearance: 0.03
+  wheelSupportProbeLift: 0.5
+  wheelPenetrationIterations: 6
   maxGroundAngle: 65
   grounded: 1
   groundNormal: {x: 0, y: 1, z: 0}
@@ -1470,9 +1583,20 @@ MonoBehaviour:
   mass: 1000
   restitution: 0.2
   drag: 0.1
+  groundFriction: 0.08
+  wallFriction: 0.04
+  bodyFriction: 0.06
+  minBounceSpeed: 0.75
+  antiStickOutwardSpeed: 0.05
   collisionDamping: 0.98
   useGravity: 1
   gravity: {x: 0, y: -9.81, z: 0}
+  useParabolicMotion: 1
+  maxFallSpeed: 80
+  useSlopePhysics: 1
+  slopeGravityMultiplier: 1
+  slopeGrip: 0.35
+  groundedGravity: 0.5
   velocity: {x: 0, y: 0, z: 0}
   acceleration: {x: 0, y: 0, z: 0}
   collisionBoxes:
@@ -1489,14 +1613,14 @@ MonoBehaviour:
     rotation: {x: 0, y: 0, z: 0}
     size: {x: 3.53, y: 1.6, z: 1.9}
     separationMultiplier: 0
-    penetrationMultiplier: 0
+    penetrationMultiplier: 1
   - enabled: 1
     part: 2
     center: {x: 0, y: -0.84, z: -2.14}
     rotation: {x: 0, y: 0, z: 0}
     size: {x: 3.53, y: 1.6, z: 1.9}
     separationMultiplier: 0
-    penetrationMultiplier: 0
+    penetrationMultiplier: 1
   collisionMask:
     serializedVersion: 2
     m_Bits: 1
@@ -1504,6 +1628,10 @@ MonoBehaviour:
   useVehiclePartResponse: 1
   wheelSeparationMultiplier: 2
   wheelPenetrationMultiplier: 2
+  useWheelGroundSupport: 1
+  wheelGroundClearance: 0.03
+  wheelSupportProbeLift: 0.5
+  wheelPenetrationIterations: 6
   maxGroundAngle: 65
   grounded: 0
   groundNormal: {x: 0, y: 1, z: 0}

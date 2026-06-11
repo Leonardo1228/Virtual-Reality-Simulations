@@ -1,88 +1,55 @@
 using UnityEngine;
 
-public class HeavyWall : UnifiedPhysicsBody
+public class HeavyWall : MonoBehaviour
 {
     [Header("Wall")]
-
     public bool fixedWall = true;
 
+    [Header("Arcade Response")]
+    public float breakForceThreshold = 40f;
 
-    [Tooltip(
-        "Extra energy loss when hitting this wall"
-    )]
-    [Range(0f, 1f)]
-    public float impactDamping = 0.8f;
+    [Header("Damping")]
+    public float impactDamping = 0.2f;
 
+    private PhysicsBody body;
 
-    void Reset()
+    void Awake()
     {
-        /*
-         Un muro pesado tiene mucha masa.
-        */
-        mass = 10000f;
-
-
-        /*
-         Casi no rebota.
-        */
-        restitution = 0.05f;
-
-
-        /*
-         Poco arrastre.
-        */
-        drag = 0.02f;
-
-
-        /*
-         Normalmente no cae.
-        */
-        useGravity = false;
-
-
-        /*
-         Un muro fijo no se mueve.
-        */
-        isStatic = fixedWall;
+        body = GetComponent<PhysicsBody>();
     }
 
-
-    void Start()
+    // llamado por el solver cuando hay impacto (opcional hook)
+    public void ApplyImpact(Vector3 velocityBeforeHit, Vector3 normal)
     {
-        isStatic = fixedWall;
-    }
+        if (body == null) return;
 
+        float impactForce = velocityBeforeHit.magnitude;
 
-    protected override void Update()
-    {
-        base.Update();
+        // pérdida de energía tipo GTA
+        body.velocity *= (1f - impactDamping);
 
-
-        /*
-         Si el muro es móvil,
-         reducimos un poco su energía
-         después de los impactos.
-        */
-        if (!isStatic)
+        if (!fixedWall && impactForce > breakForceThreshold)
         {
-            velocity *= impactDamping;
+            MakeDynamic(velocityBeforeHit * 0.5f);
         }
     }
 
-
-    public void MakeDynamic()
+    public void MakeDynamic(Vector3 impulse)
     {
-        isStatic = false;
-        useGravity = true;
-    }
+        if (body == null) return;
 
+        body.isStatic = false;
+        body.useGravity = true;
+
+        body.velocity += impulse / Mathf.Max(0.001f, body.mass);
+    }
 
     public void Freeze()
     {
-        Stop();
+        if (body == null) return;
 
-        isStatic = true;
-
-        useGravity = false;
+        body.velocity = Vector3.zero;
+        body.isStatic = true;
+        body.useGravity = false;
     }
 }

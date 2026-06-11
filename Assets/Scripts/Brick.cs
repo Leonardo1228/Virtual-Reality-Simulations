@@ -1,77 +1,65 @@
 using UnityEngine;
 
-public class Brick : UnifiedPhysicsBody
+public class Brick : MonoBehaviour
 {
     [Header("Brick")]
-
     public bool activated = false;
 
-
+    [Header("Arcade Settings")]
     [Range(0f, 1f)]
-    public float damping = 0.995f;
+    public float bounceLoss = 0.3f;
 
+    private PhysicsBody body;
+
+    void Awake()
+    {
+        body = GetComponent<PhysicsBody>();
+    }
 
     void Reset()
     {
-        mass = 4f;
+        if (body == null) body = GetComponent<PhysicsBody>();
 
-        drag = 0.05f;
-
-        restitution = 0.25f;
-
-
-        /*
-         Un ladrillo del muro
-         comienza inmóvil.
-        */
-        isStatic = true;
-
-
-        useGravity = false;
-    }
-
-
-    protected override void Update()
-    {
-        base.Update();
-
-
-        /*
-         Solo los ladrillos rotos
-         pierden velocidad con el tiempo.
-        */
-        if (activated)
+        if (body != null)
         {
-            velocity *= damping;
+            body.mass = 4f;
+            body.drag = 0f;
+            body.restitution = 0.2f;
+            body.isStatic = true;
+            body.useGravity = false;
         }
     }
 
-
-    public void Activate(
-        Vector3 impactForce)
+    // =========================
+    // CALLED BY SOLVER ONLY
+    // =========================
+    public void ApplyImpact(Vector3 velocityBeforeHit, Vector3 normal)
     {
-        if (activated)
-            return;
+        float force = velocityBeforeHit.magnitude;
 
+        if (!activated && force > 5f)
+        {
+            Activate(normal * force);
+        }
+
+        if (activated && body != null)
+        {
+            // pérdida de energía tipo arcade
+            body.velocity *= (1f - bounceLoss);
+        }
+    }
+
+    public void Activate(Vector3 impulse)
+    {
+        if (activated) return;
 
         activated = true;
 
+        if (body == null) return;
 
-        /*
-         Ahora entra a la simulación.
-        */
-        isStatic = false;
+        body.isStatic = false;
+        body.useGravity = true;
 
-
-        useGravity = true;
-
-
-        /*
-         El impacto inicial se trata
-         como un impulso instantáneo.
-        */
-        AddImpulse(
-            impactForce
-        );
+        body.velocity += impulse / Mathf.Max(0.001f, body.mass);
     }
 }

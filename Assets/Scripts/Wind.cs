@@ -3,120 +3,68 @@ using UnityEngine;
 public class Wind : MonoBehaviour
 {
     [Header("Wind")]
-
-    public Vector3 windDirection =
-        Vector3.right;
-
-    public float strength =
-        3000f;
-
-    public float radius =
-        20f;
-
+    public Vector3 windDirection = Vector3.right;
+    public float strength = 30f;
+    public float radius = 20f;
 
     [Header("Turbulence")]
-
-    public float turbulenceStrength =
-        500f;
-
-    public float turbulenceFrequency =
-        1f;
-
+    public float turbulenceStrength = 10f;
+    public float turbulenceFrequency = 1f;
 
     void Update()
     {
         ApplyWind();
     }
 
-
     void ApplyWind()
     {
-        foreach (
-            UnifiedPhysicsBody body
-            in UnifiedPhysicsBody.allBodies)
+        PhysicsBody[] bodies = FindObjectsOfType<PhysicsBody>();
+
+        foreach (PhysicsBody body in bodies)
         {
-            if (body == null)
+            if (body == null || body.isStatic)
                 continue;
 
-
-            if (body.isStatic)
-                continue;
-
-
-            float distance =
-                Vector3.Distance(
-                    transform.position,
-                    body.transform.position
-                );
-
+            Vector3 offset = body.transform.position - transform.position;
+            float distance = offset.magnitude;
 
             if (distance > radius)
                 continue;
 
+            // =========================
+            // FALL OFF (GTA STYLE)
+            // =========================
+            float t = 1f - (distance / radius);
+            t = Mathf.SmoothStep(0f, 1f, t);
 
-            Vector3 baseWind =
-                windDirection.normalized
-                * strength;
+            // =========================
+            // BASE WIND
+            // =========================
+            Vector3 baseWind = windDirection.normalized * strength;
 
-
-            float noiseX =
-                Mathf.PerlinNoise(
-                    Time.time
-                    *
-                    turbulenceFrequency,
-                    0f
-                ) - 0.5f;
-
-
-            float noiseZ =
-                Mathf.PerlinNoise(
-                    0f,
-                    Time.time
-                    *
-                    turbulenceFrequency
-                ) - 0.5f;
-
+            // =========================
+            // TURBULENCE
+            // =========================
+            float noiseX = Mathf.PerlinNoise(Time.time * turbulenceFrequency, 0f) - 0.5f;
+            float noiseZ = Mathf.PerlinNoise(0f, Time.time * turbulenceFrequency) - 0.5f;
 
             Vector3 turbulence =
-                new Vector3(
-                    noiseX,
-                    0f,
-                    noiseZ
-                )
-                *
-                turbulenceStrength;
+                new Vector3(noiseX, 0f, noiseZ) * turbulenceStrength;
 
+            // =========================
+            // MASS AFFECT
+            // =========================
+            float massFactor = 1f / Mathf.Max(1f, body.mass);
 
-            body.AddForce(
-                baseWind
-                +
-                turbulence
-            );
+            // =========================
+            // FINAL FORCE (NO dt scaling)
+            // =========================
+            Vector3 force =
+                (baseWind + turbulence) *
+                t *
+                massFactor;
+
+            body.force += force;
         }
     }
-
-
-    void OnDrawGizmos()
-    {
-        Gizmos.color =
-            Color.cyan;
-
-
-        Gizmos.DrawWireSphere(
-            transform.position,
-            radius
-        );
-
-
-        Gizmos.color =
-            Color.blue;
-
-
-        Gizmos.DrawRay(
-            transform.position,
-            windDirection.normalized
-            * 5f
-        );
-    }
 }
-
