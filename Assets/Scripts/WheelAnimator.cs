@@ -2,75 +2,111 @@ using UnityEngine;
 
 public class WheelAnimator : MonoBehaviour
 {
+
     [Header("References")]
 
     public VehicleController vehicle;
 
-    public Transform front_wheel;
+    public Transform frontWheel;
 
-    public Transform rear_wheel;
+    public Transform rearWheel;
 
-    [Header("Settings")]
 
-    public float wheelRotationSpeed = 800f;
+    [Header("Rolling")]
 
-    public float steeringAngle = 30f;
+    public float rotationMultiplier = 800f;
 
-    private float wheelRotation;
+
+    [Header("Steering")]
+
+    public float maxSteeringAngle = 30f;
+
+
+    [Header("Axes")]
+
+    public Vector3 rollingAxis =
+        Vector3.right;
+
+    public Vector3 steeringAxis =
+        Vector3.up;
+
+
+    float wheelRotation;
+
 
     void Update()
     {
         if (vehicle == null)
             return;
 
-        AnimateRolling();
 
-        AnimateSteering();
+        UpdateWheelRotation();
+
+
+        UpdateWheelTransforms();
     }
 
-    void AnimateRolling()
+
+    void UpdateWheelRotation()
     {
         float speed =
             vehicle.velocity.magnitude;
 
+
         float direction =
-            Mathf.Sign(vehicle.MoveInput);
+            Mathf.Sign(
+                vehicle.MoveInput
+            );
+
 
         wheelRotation +=
-            speed
-            * wheelRotationSpeed
-            * direction
-            * Time.deltaTime;
-
-        // Cambia eje si tu modelo usa otro
-        front_wheel.localRotation =
-            Quaternion.Euler(
-                wheelRotation,
-                front_wheel.localEulerAngles.y,
-                front_wheel.localEulerAngles.z
-            );
-
-        rear_wheel.localRotation =
-            Quaternion.Euler(
-                wheelRotation,
-                rear_wheel.localEulerAngles.y,
-                rear_wheel.localEulerAngles.z
-            );
+            speed *
+            rotationMultiplier *
+            direction *
+            Time.deltaTime;
     }
 
-    void AnimateSteering()
+
+    void UpdateWheelTransforms()
     {
         float steer =
-            vehicle.SteerInput;
+            vehicle.SteerInput *
+            maxSteeringAngle;
 
-        Vector3 euler =
-            front_wheel.localEulerAngles;
 
-        // Cambia eje si hace falta
-        euler.y =
-            steer * steeringAngle;
+        Quaternion roll =
+            Quaternion.AngleAxis(
+                wheelRotation,
+                rollingAxis.normalized
+            );
 
-        front_wheel.localEulerAngles =
-            euler;
+
+        Quaternion steering =
+            Quaternion.AngleAxis(
+                steer,
+                steeringAxis.normalized
+            );
+
+
+        /*
+         Ruedas delanteras:
+         dirección + giro
+        */
+        if (frontWheel != null)
+        {
+            frontWheel.localRotation =
+                steering * roll;
+        }
+
+
+        /*
+         Ruedas traseras:
+         solo giro
+        */
+        if (rearWheel != null)
+        {
+            rearWheel.localRotation =
+                roll;
+        }
     }
 }

@@ -3,11 +3,14 @@ using UnityEngine;
 [RequireComponent(typeof(Collider))]
 public class TutorialWall : MonoBehaviour
 {
-    public float slowMultiplier = 0.9f;
+    [Range(0f, 10f)]
+    public float slowForce = 2f;
+
 
     void Reset()
     {
-        Collider col = GetComponent<Collider>();
+        Collider col =
+            GetComponent<Collider>();
 
         if (col != null)
         {
@@ -15,16 +18,28 @@ public class TutorialWall : MonoBehaviour
         }
     }
 
-    void OnTriggerStay(Collider other)
+
+    void OnTriggerStay(
+        Collider other)
     {
         UnifiedPhysicsBody body =
-            other.GetComponent<UnifiedPhysicsBody>();
+            other.GetComponentInParent<UnifiedPhysicsBody>();
 
         if (body == null)
             return;
 
-        body.velocity *= slowMultiplier;
+
+        float factor =
+            Mathf.Clamp01(
+                1f -
+                slowForce *
+                Time.deltaTime
+            );
+
+
+        body.velocity *= factor;
     }
+
 
     void OnDrawGizmos()
     {
@@ -34,21 +49,29 @@ public class TutorialWall : MonoBehaviour
         if (col == null)
             return;
 
-        Gizmos.color = Color.yellow;
+
+        Gizmos.color =
+            Color.yellow;
+
 
         if (col is BoxCollider box)
         {
-            Matrix4x4 old = Gizmos.matrix;
+            Matrix4x4 old =
+                Gizmos.matrix;
+
 
             Gizmos.matrix =
                 transform.localToWorldMatrix;
+
 
             Gizmos.DrawWireCube(
                 box.center,
                 box.size
             );
 
-            Gizmos.matrix = old;
+
+            Gizmos.matrix =
+                old;
         }
     }
 }

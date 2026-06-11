@@ -1,48 +1,69 @@
 using UnityEngine;
 
-public class Wind : MonoBehaviour, IForceGenerator
+public class Wind : MonoBehaviour
 {
-    public Vector3 windDirection = Vector3.right;
+    [Header("Wind")]
 
-    public float strength = 3000f;
+    public Vector3 windDirection =
+        Vector3.right;
 
-    public float radius = 20f;
+    public float strength =
+        3000f;
 
-    public float turbulenceStrength = 500f;
+    public float radius =
+        20f;
 
-    public float turbulenceFrequency = 1f;
+
+    [Header("Turbulence")]
+
+    public float turbulenceStrength =
+        500f;
+
+    public float turbulenceFrequency =
+        1f;
 
 
     void Update()
     {
-        ApplyForces(Time.deltaTime);
+        ApplyWind();
     }
 
 
-    public void ApplyForces(float dt)
+    void ApplyWind()
     {
-        UnifiedPhysicsBody[] bodies =
-            FindObjectsOfType<UnifiedPhysicsBody>();
-
-        foreach (UnifiedPhysicsBody body in bodies)
+        foreach (
+            UnifiedPhysicsBody body
+            in UnifiedPhysicsBody.allBodies)
         {
+            if (body == null)
+                continue;
+
+
+            if (body.isStatic)
+                continue;
+
+
             float distance =
                 Vector3.Distance(
                     transform.position,
                     body.transform.position
                 );
 
+
             if (distance > radius)
                 continue;
 
 
-            Vector3 dir =
-                windDirection.normalized;
+            Vector3 baseWind =
+                windDirection.normalized
+                * strength;
 
 
             float noiseX =
                 Mathf.PerlinNoise(
-                    Time.time * turbulenceFrequency,
+                    Time.time
+                    *
+                    turbulenceFrequency,
                     0f
                 ) - 0.5f;
 
@@ -50,7 +71,9 @@ public class Wind : MonoBehaviour, IForceGenerator
             float noiseZ =
                 Mathf.PerlinNoise(
                     0f,
-                    Time.time * turbulenceFrequency
+                    Time.time
+                    *
+                    turbulenceFrequency
                 ) - 0.5f;
 
 
@@ -60,16 +83,14 @@ public class Wind : MonoBehaviour, IForceGenerator
                     0f,
                     noiseZ
                 )
-                * turbulenceStrength;
-
-
-            Vector3 totalForce =
-                dir * strength
-                + turbulence;
+                *
+                turbulenceStrength;
 
 
             body.AddForce(
-                totalForce
+                baseWind
+                +
+                turbulence
             );
         }
     }
@@ -77,7 +98,9 @@ public class Wind : MonoBehaviour, IForceGenerator
 
     void OnDrawGizmos()
     {
-        Gizmos.color = Color.cyan;
+        Gizmos.color =
+            Color.cyan;
+
 
         Gizmos.DrawWireSphere(
             transform.position,
@@ -85,11 +108,14 @@ public class Wind : MonoBehaviour, IForceGenerator
         );
 
 
-        Gizmos.color = Color.blue;
+        Gizmos.color =
+            Color.blue;
+
 
         Gizmos.DrawRay(
             transform.position,
-            windDirection.normalized * 5f
+            windDirection.normalized
+            * 5f
         );
     }
 }

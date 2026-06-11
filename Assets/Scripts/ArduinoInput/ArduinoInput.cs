@@ -1,10 +1,12 @@
 using UnityEngine;
 using System.IO.Ports;
 using System;
+using System.Globalization;
 
 public class ArduinoInput : MonoBehaviour
 {
     public static ArduinoInput Instance;
+
 
     [Header("Serial")]
 
@@ -12,7 +14,15 @@ public class ArduinoInput : MonoBehaviour
 
     public int baudRate = 9600;
 
+    public bool autoReconnect = true;
+
+    public float reconnectTime = 2f;
+
+
     private SerialPort serial;
+
+    private float reconnectTimer;
+
 
     [Header("Calibration")]
 
@@ -20,7 +30,15 @@ public class ArduinoInput : MonoBehaviour
 
     public float centerY = 512f;
 
+    [Range(0f, 0.5f)]
     public float deadzone = 0.18f;
+
+
+    [Header("Smoothing")]
+
+    [Range(0f, 30f)]
+    public float smoothing = 10f;
+
 
     [Header("Output")]
 
@@ -30,124 +48,223 @@ public class ArduinoInput : MonoBehaviour
     [Range(-1f, 1f)]
     public float vertical;
 
+
     public bool IsConnected =>
-    serial != null
-    && serial.IsOpen;
+        serial != null &&
+        serial.IsOpen;
+
+
+
     void Awake()
     {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
         Instance = this;
     }
 
+
+
     void Start()
+    {
+        Connect();
+    }
+
+
+
+    void Update()
+    {
+        if (!IsConnected)
+        {
+            HandleReconnect();
+            return;
+        }
+
+
+        try
+        {
+            string data =
+                serial.ReadLine().Trim();
+
+
+            string[] values =
+                data.Split(',');
+
+
+            if (values.Length < 2)
+                return;
+
+
+            float x =
+                float.Parse(
+                    values[0],
+                    CultureInfo.InvariantCulture
+                );
+
+
+            float y =
+                float.Parse(
+                    values[1],
+                    CultureInfo.InvariantCulture
+                );
+
+
+            float targetHorizontal =
+                (x - centerX) / 512f;
+
+
+            float targetVertical =
+                -(y - centerY) / 512f;
+
+
+            ApplyDeadzone(
+                ref targetHorizontal
+            );
+
+            ApplyDeadzone(
+                ref targetVertical
+            );
+
+
+            targetHorizontal =
+                Mathf.Clamp(
+                    targetHorizontal,
+                    -1f,
+                    1f
+                );
+
+
+            targetVertical =
+                Mathf.Clamp(
+                    targetVertical,
+                    -1f,
+                    1f
+                );
+
+
+            /*
+             Suavizado del joystick
+            */
+
+            horizontal =
+                Mathf.Lerp(
+                    horizontal,
+                    targetHorizontal,
+                    smoothing *
+                    Time.deltaTime
+                );
+
+
+            vertical =
+                Mathf.Lerp(
+                    vertical,
+                    targetVertical,
+                    smoothing *
+                    Time.deltaTime
+                );
+        }
+        catch (TimeoutException)
+        {
+            // normal cuando no llegan datos
+        }
+        catch (Exception e)
+        {
+            Debug.LogWarning(
+                "Arduino desconectado: "
+                + e.Message
+            );
+
+            Disconnect();
+        }
+    }
+
+
+
+    void Connect()
     {
         try
         {
-            serial = new SerialPort(
-                portName,
-                baudRate
-            );
+            serial =
+                new SerialPort(
+                    portName,
+                    baudRate
+                );
 
             serial.ReadTimeout = 20;
 
             serial.Open();
 
+
             Debug.Log(
-                "Arduino conectado."
+                "Arduino conectado en "
+                + portName
             );
         }
         catch (Exception e)
         {
-            Debug.LogError(
-                "Serial Error: "
-                + e.Message
+            Debug.LogWarning(
+                "No se pudo abrir "
+                + portName +
+                ": " +
+                e.Message
             );
         }
     }
 
-    void Update()
+
+
+    void Disconnect()
     {
-        if (serial == null)
-            return;
-
-        if (!serial.IsOpen)
-            return;
-
-        try
+        if (serial != null)
         {
-            string data =
-                serial.ReadLine();
-
-            data = data.Trim();
-
-            string[] values =
-                data.Split(',');
-
-            if (values.Length < 2)
-                return;
-
-            float x =
-                float.Parse(
-                    values[0].Trim()
-                );
-
-            float y =
-                float.Parse(
-                    values[1].Trim()
-                );
-
-            horizontal =
-                (x - centerX)
-                / 512f;
-
-            vertical =
-                (y - centerY)
-                / 512f;
-
-            // Invertir vertical
-            vertical *= -1f;
-
-            // Deadzone
-            if (Mathf.Abs(horizontal)
-                < deadzone)
+            try
             {
-                horizontal = 0f;
+                serial.Close();
             }
-
-            if (Mathf.Abs(vertical)
-                < deadzone)
+            catch
             {
-                vertical = 0f;
             }
-
-            // Clamp
-            horizontal =
-                Mathf.Clamp(
-                    horizontal,
-                    -1f,
-                    1f
-                );
-
-            vertical =
-                Mathf.Clamp(
-                    vertical,
-                    -1f,
-                    1f
-                );
         }
-        catch
-        {
 
+        serial = null;
+    }
+
+
+
+    void HandleReconnect()
+    {
+        if (!autoReconnect)
+            return;
+
+
+        reconnectTimer += Time.deltaTime;
+
+
+        if (reconnectTimer >= reconnectTime)
+        {
+            reconnectTimer = 0f;
+
+            Connect();
         }
     }
+
+
+
+    void ApplyDeadzone(ref float value)
+    {
+        if (Mathf.Abs(value) < deadzone)
+        {
+            value = 0f;
+        }
+    }
+
+
 
     void OnApplicationQuit()
     {
-        if (serial != null
-            && serial.IsOpen)
-        {
-            serial.Close();
-        }
+        Disconnect();
     }
-
-
 }

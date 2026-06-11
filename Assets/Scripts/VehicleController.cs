@@ -2,63 +2,78 @@ using UnityEngine;
 
 public class VehicleController : UnifiedPhysicsBody
 {
-    [Header("Vehicle")]
-    public float engineForce = 8000f;
-    public float steeringSpeed = 120f;
-    public float maxSpeed = 35f;
+    [Header("Engine")]
+
+    public float engineForce =
+        8f;
+
+    public float maxSpeed =
+        35f;
+
+
+    [Header("Steering")]
+
+    public float steeringSpeed =
+        120f;
+
+
+    public bool allowAirSteering =
+        true;
+
+
+    public float airSteeringMultiplier =
+        0.3f;
+
+
+    [Header("Alignment")]
+
+    public float alignmentSpeed =
+        8f;
+
 
     [Header("Control")]
-    public bool playerControlled = true;
 
-    [Header("Air Control")]
-    public bool allowAirSteering = true;
-    public float airSteeringMultiplier = 0.3f;
+    public bool playerControlled =
+        true;
 
-    [Header("Ground Alignment")]
-    public float alignmentSpeed = 8f;
-
-    [Header("Collision Response")]
-    public float collisionRecoveryTime = 0.2f;
-    private float collisionTimer;
 
     private ArduinoInput arduinoInput;
 
+
     private float moveInput;
+
+
     private float steerInput;
-    private float yawAngle;
 
     public float MoveInput => moveInput;
+
     public float SteerInput => steerInput;
 
-    void OnEnable()
-    {
-        // si quieres mantener tracking externo
-    }
+
+    private float yawAngle;
+
+
 
     void Start()
     {
-        yawAngle = transform.eulerAngles.y;
+        yawAngle =
+            transform.eulerAngles.y;
     }
 
-    void Update()
-    {
 
-        if (arduinoInput == null)
-            arduinoInput = ArduinoInput.Instance;
+
+    protected override void Update()
+    {
+        base.Update();
+
 
         ReadInput();
 
-        if (collisionTimer > 0f)
-            collisionTimer -= Time.deltaTime;
 
-        ApplyVehicleControl();
         UpdateOrientation();
     }
 
-    public void RegisterCollision()
-    {
-        collisionTimer = collisionRecoveryTime;
-    }
+
 
     void ReadInput()
     {
@@ -69,92 +84,220 @@ public class VehicleController : UnifiedPhysicsBody
             return;
         }
 
+
+        if (arduinoInput == null)
+        {
+            arduinoInput =
+                ArduinoInput.Instance;
+        }
+
+
         bool arduinoReady =
-            arduinoInput != null && arduinoInput.IsConnected;
+            arduinoInput != null
+            &&
+            arduinoInput.IsConnected;
+
 
         if (arduinoReady)
         {
-            moveInput = arduinoInput.vertical;
-            steerInput = arduinoInput.horizontal;
+            moveInput =
+                arduinoInput.vertical;
+
+            steerInput =
+                arduinoInput.horizontal;
         }
         else
         {
-            moveInput = Input.GetAxis("Vertical");
-            steerInput = Input.GetAxis("Horizontal");
+            moveInput =
+                Input.GetAxis(
+                    "Vertical"
+                );
+
+            steerInput =
+                Input.GetAxis(
+                    "Horizontal"
+                );
         }
 
-        moveInput = Mathf.Clamp(moveInput, -1f, 1f);
-        steerInput = Mathf.Clamp(steerInput, -1f, 1f);
+
+        moveInput =
+            Mathf.Clamp(
+                moveInput,
+                -1f,
+                1f
+            );
+
+
+        steerInput =
+            Mathf.Clamp(
+                steerInput,
+                -1f,
+                1f
+            );
+
+
+        HandleMovement();
     }
 
-    void ApplyVehicleControl()
+
+
+    void HandleMovement()
     {
-        float dt = Time.deltaTime;
+        float dt =
+            Time.deltaTime;
+
+
+        /*
+         Giro.
+        */
 
         float steeringMultiplier =
-            grounded ? 1f : airSteeringMultiplier;
+            grounded
+            ? 1f
+            : airSteeringMultiplier;
+
 
         if (grounded || allowAirSteering)
         {
-            yawAngle += steerInput * steeringSpeed * steeringMultiplier * dt;
+            yawAngle +=
+                steerInput *
+                steeringSpeed *
+                steeringMultiplier *
+                dt;
         }
+
+
+        /*
+         En el aire no hay tracción.
+        */
+
+        if (!grounded)
+            return;
+
+
+        /*
+         Dirección del vehículo.
+        */
 
         Vector3 forward =
-            Quaternion.Euler(0f, yawAngle, 0f) * Vector3.forward;
+            Quaternion.Euler(
+                0f,
+                yawAngle,
+                0f
+            )
+            *
+            Vector3.forward;
 
-        // target speed
+
+        /*
+         Velocidad objetivo.
+        */
+
         Vector3 targetVelocity =
-            forward * moveInput * maxSpeed;
+            forward *
+            moveInput *
+            maxSpeed;
 
-        // horizontal velocity (preserve Y physics)
-        Vector3 horizontalVelocity =
-            new Vector3(velocity.x, 0f, velocity.z);
 
-        float accel =
-            (collisionTimer > 0f) ? 0.25f : 1f;
+        /*
+         Solo modificamos la velocidad
+         horizontal, dejando que la
+         gravedad maneje Y.
+        */
 
-        horizontalVelocity =
-            Vector3.Lerp(
-                horizontalVelocity,
-                targetVelocity,
-                engineForce * accel * dt
+        Vector3 horizontal =
+            new Vector3(
+                velocity.x,
+                0f,
+                velocity.z
             );
 
-        velocity.x = horizontalVelocity.x;
-        velocity.z = horizontalVelocity.z;
 
-        // clamp speed
-        Vector3 flat = new Vector3(velocity.x, 0f, velocity.z);
-        if (flat.magnitude > maxSpeed)
-        {
-            flat = flat.normalized * maxSpeed;
-            velocity.x = flat.x;
-            velocity.z = flat.z;
-        }
+        horizontal =
+            Vector3.Lerp(
+                horizontal,
+                targetVelocity,
+                engineForce * dt
+            );
+
+
+        velocity.x =
+            horizontal.x;
+
+        velocity.z =
+            horizontal.z;
     }
+
+
 
     void UpdateOrientation()
     {
-        Vector3 forward =
-            Quaternion.Euler(0f, yawAngle, 0f) * Vector3.forward;
+        /*
+         Dirección según volante.
+        */
 
-        Vector3 targetUp =
-            grounded ? groundNormal : Vector3.up;
+        Vector3 forward =
+            Quaternion.Euler(
+                0f,
+                yawAngle,
+                0f
+            )
+            *
+            Vector3.forward;
+
+
+        /*
+         Si está en el suelo,
+         usamos la normal de la
+         superficie para inclinarlo.
+        */
+
+        Vector3 up =
+            grounded
+            ? groundNormal
+            : transform.up;
+
+
+        /*
+         Proyectamos la dirección
+         sobre la superficie.
+        */
 
         Vector3 projectedForward =
-            Vector3.ProjectOnPlane(forward, targetUp);
+            Vector3.ProjectOnPlane(
+                forward,
+                up
+            ).normalized;
 
-        if (projectedForward.sqrMagnitude < 0.001f)
-            projectedForward = transform.forward;
 
-        Quaternion targetRot =
-            Quaternion.LookRotation(projectedForward.normalized, targetUp);
+        /*
+         Evita errores si la pendiente
+         es demasiado extrema.
+        */
+
+        if (
+            projectedForward.sqrMagnitude
+            < 0.001f
+        )
+        {
+            projectedForward =
+                transform.forward;
+        }
+
+
+        Quaternion targetRotation =
+            Quaternion.LookRotation(
+                projectedForward,
+                up
+            );
+
 
         transform.rotation =
             Quaternion.Slerp(
                 transform.rotation,
-                targetRot,
-                alignmentSpeed * Time.deltaTime
+                targetRotation,
+                alignmentSpeed *
+                Time.deltaTime
             );
     }
 }

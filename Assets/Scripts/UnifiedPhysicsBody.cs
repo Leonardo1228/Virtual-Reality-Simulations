@@ -2,10 +2,25 @@ using UnityEngine;
 using System.Collections.Generic;
 
 
+public enum CollisionBoxPart
+{
+    Body,
+    FrontWheel,
+    RearWheel,
+    Other
+}
+
+
 [System.Serializable]
 public class CollisionBox
 {
     public bool enabled = true;
+
+
+    [Header("Part")]
+
+    public CollisionBoxPart part =
+        CollisionBoxPart.Body;
 
 
     [Header("Local Transform")]
@@ -20,6 +35,18 @@ public class CollisionBox
 
     public Vector3 size =
         Vector3.one;
+
+
+    [Header("Collision Response")]
+
+    [Min(0f)]
+    public float separationMultiplier =
+        1f;
+
+
+    [Min(0f)]
+    public float penetrationMultiplier =
+        1f;
 
 
     public Vector3 WorldCenter(
@@ -45,6 +72,37 @@ public class CollisionBox
     {
         return size * 0.5f;
     }
+
+
+    public Vector3 WorldSize(
+        Transform root)
+    {
+        Vector3 scale =
+            root.lossyScale;
+
+
+        scale =
+            new Vector3(
+                Mathf.Abs(scale.x),
+                Mathf.Abs(scale.y),
+                Mathf.Abs(scale.z)
+            );
+
+
+        return Vector3.Scale(
+            size,
+            scale
+        );
+    }
+
+
+    public Vector3 WorldHalfExtents(
+        Transform root)
+    {
+        return WorldSize(
+            root
+        ) * 0.5f;
+    }
 }
 
 
@@ -53,6 +111,8 @@ public class CollisionBox
 public class UnifiedPhysicsBody :
     MonoBehaviour
 {
+    static BoxCollider penetrationProbe;
+
 
     /*
     ==========================
@@ -69,6 +129,9 @@ public class UnifiedPhysicsBody :
 
     protected virtual void OnEnable()
     {
+        EnsureCollisionBoxes();
+
+
         if (
             !allBodies.Contains(
                 this
@@ -87,6 +150,51 @@ public class UnifiedPhysicsBody :
         allBodies.Remove(
             this
         );
+    }
+
+
+    protected virtual void Reset()
+    {
+        EnsureCollisionBoxes();
+    }
+
+
+    void EnsureCollisionBoxes()
+    {
+        if (
+            collisionBoxes != null
+            &&
+            collisionBoxes.Length > 0
+        )
+        {
+            return;
+        }
+
+
+        BoxCollider boxCollider =
+            GetComponent<BoxCollider>();
+
+
+        CollisionBox box =
+            new CollisionBox();
+
+
+        if (boxCollider != null)
+        {
+            box.center =
+                boxCollider.center;
+
+
+            box.size =
+                boxCollider.size;
+        }
+
+
+        collisionBoxes =
+            new CollisionBox[]
+            {
+                box
+            };
     }
 
 
@@ -190,6 +298,22 @@ public class UnifiedPhysicsBody :
         0.02f;
 
 
+    [Header("Vehicle Part Response")]
+
+    public bool useVehiclePartResponse =
+        true;
+
+
+    [Min(0f)]
+    public float wheelSeparationMultiplier =
+        2f;
+
+
+    [Min(0f)]
+    public float wheelPenetrationMultiplier =
+        2f;
+
+
     [Tooltip(
         "Maximum slope angle considered ground"
     )]
@@ -203,6 +327,44 @@ public class UnifiedPhysicsBody :
 
     public Vector3 groundNormal =
         Vector3.up;
+
+
+    /*
+==========================
+       GROUND SYSTEM
+==========================
+*/
+
+    [Header("Ground Detection")]
+
+    [Tooltip(
+        "Distance below collision boxes to search for ground"
+    )]
+    [Min(0.001f)]
+    public float groundCheckDistance =
+        0.1f;
+
+
+    [Tooltip(
+        "Snap object to ground when close"
+    )]
+    public bool snapToGround =
+        true;
+
+
+    [Tooltip(
+        "Extra distance to keep object stable"
+    )]
+    [Min(0f)]
+    public float groundStickOffset =
+        0.01f;
+
+
+    [Tooltip(
+        "Prevent small bouncing while resting"
+    )]
+    public bool cancelDownwardVelocity =
+        true;
 
 
     /*
@@ -228,6 +390,19 @@ public class UnifiedPhysicsBody :
     )]
     public float separationOffset =
         0.01f;
+
+    [Tooltip(
+    "Fix objects starting inside colliders"
+)]
+    public bool solvePenetration = true;
+
+
+    [Min(0f)]
+    public float penetrationPadding = 0.005f;
+
+
+    [Range(1, 5)]
+    public int penetrationIterations = 2;
 
 
     /*
@@ -285,8 +460,15 @@ public class UnifiedPhysicsBody :
 
 
     protected virtual void Simulate(
-        float dt)
+    float dt)
     {
+        /*
+         Comprobar si estamos apoyados
+         antes de movernos.
+        */
+        GroundCheck();
+
+
         ApplyForces(
             dt
         );
@@ -309,10 +491,287 @@ public class UnifiedPhysicsBody :
         }
 
 
+        /*
+         Corrección final por si terminamos
+         cerca del suelo.
+        */
+        GroundCheck();
+
+
+        if (solvePenetration)
+        {
+            SolvePenetration();
+        }
+
+
         accumulatedForce =
             Vector3.zero;
     }
 
+
+    /*
+==========================
+    PENETRATION FIX
+==========================
+*/
+
+    void SolvePenetration()
+    {
+        BoxCollider probe =
+            GetPenetrationProbe();
+
+
+        if (probe == null)
+        {
+            return;
+        }
+
+
+        for (
+            int iteration = 0;
+            iteration < penetrationIterations;
+            iteration++
+        )
+        {
+            bool fixedSomething =
+                false;
+
+
+            foreach (
+                CollisionBox box
+                in collisionBoxes
+            )
+            {
+                if (box == null)
+                    continue;
+
+
+                if (!box.enabled)
+                    continue;
+
+
+                Collider[] overlaps =
+                    Physics.OverlapBox(
+                        box.WorldCenter(
+                            transform
+                        ),
+
+                        box.WorldHalfExtents(
+                            transform
+                        ),
+
+                        box.WorldRotation(
+                            transform
+                        ),
+
+                        collisionMask,
+
+                        QueryTriggerInteraction.Ignore
+                    );
+
+
+                foreach (
+                    Collider col
+                    in overlaps
+                )
+                {
+                    if (IsOwnCollider(col))
+                    {
+                        continue;
+                    }
+
+
+                    Vector3 direction;
+
+                    float distance;
+
+
+                    probe.size =
+                        box.WorldSize(
+                            transform
+                        );
+
+
+                    probe.center =
+                        Vector3.zero;
+
+
+                    bool penetrated =
+                        Physics.ComputePenetration(
+                            probe,
+                            box.WorldCenter(
+                                transform
+                            ),
+                            box.WorldRotation(
+                                transform
+                            ),
+
+                            col,
+                            col.transform.position,
+                            col.transform.rotation,
+
+                            out direction,
+                            out distance
+                        );
+
+
+                    if (!penetrated)
+                        continue;
+
+
+                    transform.position +=
+                        direction *
+                        (
+                            distance
+                            +
+                            GetPenetrationPadding(
+                                box
+                            )
+                        );
+
+
+                    fixedSomething =
+                        true;
+                }
+            }
+
+
+            if (!fixedSomething)
+            {
+                break;
+            }
+        }
+    }
+
+
+    static BoxCollider GetPenetrationProbe()
+    {
+        if (penetrationProbe != null)
+        {
+            return penetrationProbe;
+        }
+
+
+        GameObject probeObject =
+            new GameObject(
+                "UnifiedPhysicsBody Box Penetration Probe"
+            );
+
+
+        probeObject.hideFlags =
+            HideFlags.HideAndDontSave;
+
+
+        penetrationProbe =
+            probeObject.AddComponent
+            <BoxCollider>();
+
+
+        penetrationProbe.enabled =
+            false;
+
+
+        return penetrationProbe;
+    }
+
+
+    bool IsOwnCollider(
+        Collider col)
+    {
+        if (col == null)
+        {
+            return true;
+        }
+
+
+        return
+            col.transform == transform
+            ||
+            col.GetComponentInParent
+            <UnifiedPhysicsBody>() == this;
+    }
+
+
+    float GetSeparationOffset(
+        CollisionBox box)
+    {
+        float multiplier =
+            GetPartMultiplier(
+                box,
+                box != null
+                ? box.separationMultiplier
+                : 1f,
+                wheelSeparationMultiplier
+            );
+
+
+        return separationOffset *
+               multiplier;
+    }
+
+
+    float GetPenetrationPadding(
+        CollisionBox box)
+    {
+        float multiplier =
+            GetPartMultiplier(
+                box,
+                box != null
+                ? box.penetrationMultiplier
+                : 1f,
+                wheelPenetrationMultiplier
+            );
+
+
+        return penetrationPadding *
+               multiplier;
+    }
+
+
+    float GetPartMultiplier(
+        CollisionBox box,
+        float boxMultiplier,
+        float wheelMultiplier)
+    {
+        if (box == null)
+        {
+            return 1f;
+        }
+
+
+        float multiplier =
+            boxMultiplier <= 0f
+            ? 1f
+            : boxMultiplier;
+
+
+        if (
+            useVehiclePartResponse
+            &&
+            IsWheelPart(
+                box.part
+            )
+        )
+        {
+            multiplier *=
+                wheelMultiplier <= 0f
+                ? 1f
+                : wheelMultiplier;
+        }
+
+
+        return multiplier;
+    }
+
+
+    bool IsWheelPart(
+        CollisionBoxPart part)
+    {
+        return
+            part == CollisionBoxPart.FrontWheel
+            ||
+            part == CollisionBoxPart.RearWheel;
+    }
 
     /*
     ==========================
@@ -328,7 +787,10 @@ public class UnifiedPhysicsBody :
             accumulatedForce;
 
 
-        if (useGravity)
+        if (
+            useGravity &&
+            !grounded
+        )
         {
             totalForce +=
                 gravity *
@@ -357,6 +819,177 @@ public class UnifiedPhysicsBody :
             damping;
     }
 
+
+    /*
+==========================
+        GROUND CHECK
+==========================
+*/
+
+    void GroundCheck()
+    {
+        grounded = false;
+
+        groundNormal =
+            Vector3.up;
+
+
+        float bestDistance =
+            float.MaxValue;
+
+
+        RaycastHit bestHit =
+            new RaycastHit();
+
+
+        foreach (
+            CollisionBox box
+            in collisionBoxes
+        )
+        {
+            if (box == null)
+                continue;
+
+
+            if (!box.enabled)
+                continue;
+
+
+            Vector3 origin =
+                box.WorldCenter(
+                    transform
+                );
+
+
+            RaycastHit[] hits =
+                Physics.BoxCastAll(
+                    origin,
+
+                    box.WorldHalfExtents(
+                        transform
+                    ),
+
+                    Vector3.down,
+
+                    box.WorldRotation(
+                        transform
+                    ),
+
+                    groundCheckDistance
+                    +
+                    skinWidth,
+
+                    collisionMask,
+
+                    QueryTriggerInteraction.Ignore
+                );
+
+
+            foreach (
+                RaycastHit hit
+                in hits
+            )
+            {
+                if (IsOwnCollider(hit.collider))
+                    continue;
+
+
+                float angle =
+                    Vector3.Angle(
+                        hit.normal,
+                        Vector3.up
+                    );
+
+
+                /*
+                Solo superficies caminables.
+                */
+                if (
+                    angle >
+                    maxGroundAngle
+                )
+                {
+                    continue;
+                }
+
+
+                if (
+                    hit.distance <
+                    bestDistance
+                )
+                {
+                    bestDistance =
+                        hit.distance;
+
+
+                    bestHit =
+                        hit;
+                }
+            }
+        }
+
+
+        /*
+        No encontramos suelo.
+        */
+        if (
+            bestDistance ==
+            float.MaxValue
+        )
+        {
+            return;
+        }
+
+
+        grounded = true;
+
+
+        groundNormal =
+            bestHit.normal;
+
+
+        /*
+        Mantener el cuerpo pegado
+        al terreno.
+        */
+        if (
+            snapToGround
+            &&
+            bestDistance >
+            0f
+        )
+        {
+            float correction =
+                bestDistance
+                -
+                groundStickOffset;
+
+
+            if (
+                correction > 0f
+            )
+            {
+                transform.position -=
+                    Vector3.up
+                    *
+                    correction;
+            }
+        }
+
+
+        /*
+        Eliminar caída residual.
+        */
+        if (
+            cancelDownwardVelocity
+            &&
+            velocity.y < 0f
+        )
+        {
+            velocity.y = 0f;
+        }
+    }
+
     /*
 ==========================
       MOVEMENT STEP
@@ -364,17 +997,20 @@ public class UnifiedPhysicsBody :
 */
 
     protected virtual void MoveStep(
-        float dt)
+    float dt)
     {
         Vector3 movement =
-            velocity *
-            dt;
+            velocity * dt;
 
 
         float distance =
             movement.magnitude;
 
 
+        /*
+        Movimientos demasiado pequeños
+        no necesitan comprobación.
+        */
         if (distance <= 0.00001f)
         {
             return;
@@ -386,7 +1022,6 @@ public class UnifiedPhysicsBody :
 
 
         RaycastHit hit;
-
 
         CollisionBox sourceBox;
 
@@ -400,23 +1035,115 @@ public class UnifiedPhysicsBody :
             );
 
 
+        /*
+        No hubo impacto.
+        */
         if (!collided)
         {
             transform.position +=
                 movement;
 
+            return;
+        }
 
-            grounded =
-                false;
 
+        /*
+        Nos movemos hasta el punto
+        anterior al impacto.
+        */
+        float safeDistance =
+            Mathf.Max(
+                hit.distance -
+                skinWidth,
+                0f
+            );
+
+
+        transform.position +=
+            direction *
+            safeDistance;
+
+
+        /*
+        Separación mínima para evitar
+        quedar pegado dentro del collider.
+        */
+        transform.position +=
+            hit.normal *
+            GetSeparationOffset(
+                sourceBox
+            );
+
+
+        /*
+        Resolver el tipo de impacto.
+        */
+        HandleCollision(
+            hit,
+            sourceBox
+        );
+    }
+
+
+    /*
+==========================
+       HANDLE COLLISION
+==========================
+*/
+
+    void HandleCollision(
+        RaycastHit hit,
+        CollisionBox sourceBox)
+    {
+        float angle =
+            Vector3.Angle(
+                hit.normal,
+                Vector3.up
+            );
+
+
+        /*
+        Guardamos normal del suelo.
+        */
+        if (angle <= maxGroundAngle)
+        {
+            grounded = true;
+
+            groundNormal =
+                hit.normal;
+        }
+
+
+        UnifiedPhysicsBody other =
+            hit.collider
+            .GetComponentInParent
+            <UnifiedPhysicsBody>();
+
+
+        /*
+        Colisión contra otro cuerpo.
+        */
+        if (
+            other != null
+            &&
+            other != this
+        )
+        {
+            ResolveBodyCollision(
+                other,
+                hit.normal
+            );
 
             return;
         }
 
 
-        ResolveCollision(
-            hit,
-            direction
+        /*
+        Mundo estático:
+        piso, muro, rampa, modelo.
+        */
+        ResolveStaticCollision(
+            hit.normal
         );
     }
 
@@ -466,20 +1193,17 @@ public class UnifiedPhysicsBody :
                 continue;
 
 
-            RaycastHit hit;
-
-
-            bool hasHit =
-                Physics.BoxCast(
+            RaycastHit[] hits =
+                Physics.BoxCastAll(
                     box.WorldCenter(
                         transform
                     ),
 
-                    box.HalfExtents(),
+                    box.WorldHalfExtents(
+                        transform
+                    ),
 
                     direction,
-
-                    out hit,
 
                     box.WorldRotation(
                         transform
@@ -488,34 +1212,42 @@ public class UnifiedPhysicsBody :
                     distance +
                     skinWidth,
 
-                    collisionMask
+                    collisionMask,
+
+                    QueryTriggerInteraction.Ignore
                 );
 
 
-            if (!hasHit)
-                continue;
-
-
-            contactCount++;
-
-
-            if (hit.distance <
-                closest)
+            foreach (
+                RaycastHit hit
+                in hits
+            )
             {
-                closest =
-                    hit.distance;
+                if (IsOwnCollider(hit.collider))
+                    continue;
 
 
-                nearestHit =
-                    hit;
+                contactCount++;
 
 
-                hitBox =
-                    box;
+                if (hit.distance <
+                    closest)
+                {
+                    closest =
+                        hit.distance;
 
 
-                found =
-                    true;
+                    nearestHit =
+                        hit;
+
+
+                    hitBox =
+                        box;
+
+
+                    found =
+                        true;
+                }
             }
         }
 
@@ -606,9 +1338,100 @@ public class UnifiedPhysicsBody :
 
 
     void ResolveStaticCollision(
-        Vector3 normal)
+    Vector3 normal)
     {
-        float incoming =
+        float angle =
+            Vector3.Angle(
+                normal,
+                Vector3.up
+            );
+
+
+        /*
+        ==========================
+                GROUND
+        ==========================
+        */
+        if (angle <= maxGroundAngle)
+        {
+            /*
+            Quitamos únicamente
+            la velocidad que empuja
+            hacia el suelo.
+            */
+
+            float downward =
+                Vector3.Dot(
+                    velocity,
+                    -normal
+                );
+
+
+            if (downward > 0f)
+            {
+                velocity +=
+                    normal *
+                    downward;
+            }
+
+
+            /*
+            Dejamos el movimiento
+            paralelo a la superficie.
+            */
+
+            velocity =
+                Vector3.ProjectOnPlane(
+                    velocity,
+                    normal
+                );
+
+
+            /*
+            Fricción por contacto.
+            */
+
+            velocity *=
+                collisionDamping;
+
+
+            return;
+        }
+
+
+        /*
+        ==========================
+                  CEILING
+        ==========================
+        */
+        if (angle > 150f)
+        {
+            float upward =
+                Vector3.Dot(
+                    velocity,
+                    normal
+                );
+
+
+            if (upward < 0f)
+            {
+                velocity -=
+                    normal *
+                    upward;
+            }
+
+
+            return;
+        }
+
+
+        /*
+        ==========================
+                  WALL
+        ==========================
+        */
+
+        float impact =
             Vector3.Dot(
                 velocity,
                 normal
@@ -616,56 +1439,42 @@ public class UnifiedPhysicsBody :
 
 
         /*
-         Si nos estamos alejando,
-         no hacer nada.
+        Si se aleja de la pared
+        no hacemos nada.
         */
-
-        if (incoming >= 0f)
+        if (impact >= 0f)
+        {
             return;
+        }
 
 
         /*
-         Rebote
+        Rebote usando restitution.
         */
 
-        Vector3 bounce =
-            -(1f +
-            restitution)
+        velocity -=
+            (1f + restitution)
             *
-            incoming
+            impact
             *
             normal;
 
 
-        velocity +=
-            bounce;
-
-
         /*
-         Deslizamiento en superficies
-         inclinadas.
-        */
-
-        velocity =
-            Vector3.ProjectOnPlane(
-                velocity,
-                normal
-            );
-
-
-        /*
-         Pérdida de energía
-         para evitar vibraciones.
+        Reducimos energía del choque.
         */
 
         velocity *=
             collisionDamping;
     }
+
+
+
     /*
 ==========================
   BODY COLLISION
 ==========================
-*/
+    */
 
     void ResolveBodyCollision(
         UnifiedPhysicsBody other,
@@ -891,7 +1700,6 @@ public class UnifiedPhysicsBody :
             * 2f
         );
     }
+
+
 }
-
-
-

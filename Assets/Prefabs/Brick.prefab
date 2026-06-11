@@ -104,17 +104,33 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2d71dc4610bcec6458254589de0fb3c3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Brick
-  mass: 50
-  drag: 0.05
+  isStatic: 0
+  mass: 4
   restitution: 0.25
-  radius: 0
+  drag: 0.02
+  collisionDamping: 0.995
   useGravity: 1
   gravity: {x: 0, y: -9.81, z: 0}
   velocity: {x: 0, y: 0, z: 0}
   acceleration: {x: 0, y: 0, z: 0}
-  angularVelocity: {x: 0, y: 0, z: 0}
-  angularAcceleration: {x: 0, y: 0, z: 0}
-  rotationalDrag: 0.96
+  collisionBoxes: []
+  collisionMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  skinWidth: 0.02
+  maxGroundAngle: 65
+  grounded: 0
+  groundNormal: {x: 0, y: 1, z: 0}
+  groundCheckDistance: 0.1
+  snapToGround: 1
+  groundStickOffset: 0.01
+  cancelDownwardVelocity: 1
+  movementSubsteps: 3
+  separationOffset: 0.01
+  speed: 0
+  kineticEnergy: 0
+  momentum: 0
+  contactCount: 0
   activated: 0
   damping: 0.995
 --- !u!65 &7238892204107143206

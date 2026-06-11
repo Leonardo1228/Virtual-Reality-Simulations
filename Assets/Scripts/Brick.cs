@@ -3,43 +3,75 @@ using UnityEngine;
 public class Brick : UnifiedPhysicsBody
 {
     [Header("Brick")]
-    public bool activated;
+
+    public bool activated = false;
+
+
+    [Range(0f, 1f)]
     public float damping = 0.995f;
+
 
     void Reset()
     {
         mass = 4f;
-    }
 
-    void Start()
-    {
+        drag = 0.05f;
+
+        restitution = 0.25f;
+
+
+        /*
+         Un ladrillo del muro
+         comienza inmóvil.
+        */
+        isStatic = true;
+
+
         useGravity = false;
-
-        if (mass <= 0f)
-            mass = 4f;
     }
 
-    void Update()
+
+    protected override void Update()
     {
+        base.Update();
 
-        if (!activated)
-            return;
 
-        velocity *= damping;
+        /*
+         Solo los ladrillos rotos
+         pierden velocidad con el tiempo.
+        */
+        if (activated)
+        {
+            velocity *= damping;
+        }
     }
 
-    public void Activate(Vector3 impactForce)
+
+    public void Activate(
+        Vector3 impactForce)
     {
         if (activated)
             return;
 
+
         activated = true;
+
+
+        /*
+         Ahora entra a la simulación.
+        */
+        isStatic = false;
+
+
         useGravity = true;
 
-        AddForce(impactForce);
 
-        AddForce(
-            Vector3.up * impactForce.magnitude * 0.2f
+        /*
+         El impacto inicial se trata
+         como un impulso instantáneo.
+        */
+        AddImpulse(
+            impactForce
         );
     }
 }
