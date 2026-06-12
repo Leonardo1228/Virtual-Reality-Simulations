@@ -11,10 +11,10 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/SimulationCar.unity
     guid: aae4f45ebea3c3f468742d9ed7dbe0a5
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/MovementTutorial.unity
     guid: da87a1fe9c2440a41bf06177c0a23d73
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/WindChallenge.unity
     guid: 545bd6be9ba57e149bd7e677f314bdbb
   m_configObjects:
