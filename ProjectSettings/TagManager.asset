@@ -12,8 +12,8 @@ TagManager:
   - Water
   - UI
   - WorldStatic
-  - Vehicle
   - Destructible
+  - Vehicle
   - ForceField
   - Brick
   - 
