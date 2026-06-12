@@ -3,61 +3,58 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody))]
 public class Brick : MonoBehaviour
 {
-    [Header("Brick")]
+    [Header("State")]
     public bool activated = false;
-
-    [Header("Arcade Settings")]
-    [Range(0f, 1f)]
-    public float bounceLoss = 0.3f;
 
     [Header("Activation")]
     public float activationThreshold = 5f;
 
-    Rigidbody rb;
-
     [Header("Layers")]
     public LayerMask affectedBy;
+
+    Rigidbody rb;
+
+    public Rigidbody Rigidbody => rb;
+
 
     void Awake()
     {
         rb = GetComponent<Rigidbody>();
 
-        if (!activated)
-        {
-            rb.isKinematic = true;
-        }
+        rb.isKinematic = !activated;
     }
+
 
     void OnCollisionEnter(Collision collision)
     {
-        float impact = collision.impulse.magnitude;
-
-        if (!activated && impact > activationThreshold)
-        {
-            Activate(collision);
-        }
-
+        // Ya está suelto, PhysX se encarga
         if (activated)
-        {
-            ApplyDamageResponse();
-        }
+            return;
+
+
+        // ¿Esta capa puede romper el ladrillo?
+        if ((affectedBy.value & (1 << collision.gameObject.layer)) == 0)
+            return;
+
+
+        // ¿El golpe fue suficientemente fuerte?
+        if (collision.impulse.magnitude < activationThreshold)
+            return;
+
+
+        Activate();
     }
 
-    void Activate(Collision collision)
+
+    public void Activate()
     {
+        if (activated)
+            return;
+
         activated = true;
 
         rb.isKinematic = false;
 
-        rb.AddForce(
-            collision.impulse,
-            ForceMode.Impulse
-        );
+        rb.WakeUp();
     }
-
-    void ApplyDamageResponse()
-    {
-        rb.linearVelocity *= (1f - bounceLoss);
-    }
-
 }

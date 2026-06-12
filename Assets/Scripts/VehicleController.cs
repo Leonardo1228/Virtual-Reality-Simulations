@@ -1,27 +1,41 @@
 ﻿using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody))]
-public class VehicleController : MonoBehaviour
+public class HybridVehicle : MonoBehaviour
 {
-    [Header("Movement")]
-    public float moveForce = 20f;
-    public float turnTorque = 8f;
+    [Header("Control")]
+    public bool isPlayerControlled = true;
 
-    [Header("Speed Limit")]
+    [Header("Movement")]
     public float maxSpeed = 10f;
+    public float acceleration = 25f;
+
+    [Header("Turning")]
+    public float turnSpeed = 90f;
 
     Rigidbody rb;
 
-    float move;
-    float turn;
+    float moveInput;
+    float turnInput;
+
+    public float MoveInput => moveInput;
+    public float TurnInput => turnInput;
+
+    public float CurrentSpeed =>
+    rb.linearVelocity.magnitude;
 
     void Awake()
     {
         rb = GetComponent<Rigidbody>();
 
-        rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
-        rb.interpolation = RigidbodyInterpolation.Interpolate;
+        rb.mass = 1000f;
+        rb.linearDamping = 0.2f;
+        rb.angularDamping = 2f;
 
+        rb.interpolation = RigidbodyInterpolation.Interpolate;
+        rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+
+        // El coche no se vuelca, pero sí se mueve libremente
         rb.constraints =
             RigidbodyConstraints.FreezeRotationX |
             RigidbodyConstraints.FreezeRotationZ;
@@ -29,47 +43,71 @@ public class VehicleController : MonoBehaviour
 
     void Update()
     {
-        Debug.Log("SCRIPT FUNCIONA");
+        if (!isPlayerControlled)
+        {
+            moveInput = 0f;
+            turnInput = 0f;
+            return;
+        }
 
-        move = Input.GetAxisRaw("Vertical");   // W/S
-        turn = Input.GetAxisRaw("Horizontal"); // A/D
+        moveInput = Input.GetAxisRaw("Vertical");
+        turnInput = Input.GetAxisRaw("Horizontal");
     }
 
     void FixedUpdate()
     {
-        Move();
-        Turn();
-        LimitSpeed();
+        ApplyEngine();
+        ApplySteering();
     }
 
-    // =========================
-    // MOVEMENT (forward/back)
-    // =========================
-    void Move()
+    void ApplyEngine()
     {
-        rb.AddForce(transform.forward * move * moveForce, ForceMode.Force);
+        // Velocidad actual en la dirección del coche
+        float currentForwardSpeed =
+            Vector3.Dot(
+                rb.linearVelocity,
+                transform.forward
+            );
+
+        // A dónde queremos llegar
+        float targetSpeed =
+            moveInput * maxSpeed;
+
+        float speedDifference =
+            targetSpeed - currentForwardSpeed;
+
+        // Fuerza para acercarse a esa velocidad
+        Vector3 force =
+            transform.forward *
+            speedDifference *
+            acceleration;
+
+        rb.AddForce(
+            force,
+            ForceMode.Force
+        );
     }
 
-    // =========================
-    // ROTATION (left/right)
-    // =========================
-    void Turn()
+    void ApplySteering()
     {
-        rb.AddTorque(Vector3.up * turn * turnTorque, ForceMode.Force);
-    }
+        // No gira si está completamente quieto
+        if (rb.linearVelocity.magnitude < 0.5f)
+            return;
 
-    // =========================
-    // SPEED LIMIT
-    // =========================
-    void LimitSpeed()
-    {
-        Vector3 flat = rb.linearVelocity;
-        flat.y = 0f;
+        float rotation =
+            turnInput *
+            turnSpeed *
+            Time.fixedDeltaTime;
 
-        if (flat.magnitude > maxSpeed)
-        {
-            Vector3 limited = flat.normalized * maxSpeed;
-            rb.linearVelocity = new Vector3(limited.x, rb.linearVelocity.y, limited.z);
-        }
+        Quaternion turn =
+            Quaternion.Euler(
+                0f,
+                rotation,
+                0f
+            );
+
+        rb.MoveRotation(
+            rb.rotation * turn
+        );
     }
 }

@@ -22,6 +22,23 @@ public class BrickWall : MonoBehaviour
 
     List<Brick> bricks = new();
 
+    public int BrickCount => bricks.Count;
+    public int ActiveBricks
+    {
+        get
+        {
+            int count = 0;
+
+            foreach (var brick in bricks)
+            {
+                if (brick != null && brick.activated)
+                    count++;
+            }
+
+            return count;
+        }
+    }
+
     void Start()
     {
         if (generateOnStart)
@@ -70,38 +87,63 @@ public class BrickWall : MonoBehaviour
 
     void SetupBrickRigidbody(Brick brick)
     {
-        Rigidbody rb = brick.GetComponent<Rigidbody>();
+        Rigidbody rb = brick.Rigidbody;
 
         rb.mass = 3f;
-        rb.linearDamping = 0.2f;
-        rb.angularDamping = 0.5f;
 
-        rb.interpolation = RigidbodyInterpolation.Interpolate;
-        rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
+        rb.linearDamping = 0.1f;
+        rb.angularDamping = 0.3f;
+
+        rb.interpolation =
+            RigidbodyInterpolation.Interpolate;
+
+
+        // Más barato para muchos ladrillos
+        rb.collisionDetectionMode =
+            CollisionDetectionMode.Discrete;
+
 
         if (usePhysicsSleep)
+        {
             rb.sleepThreshold = 0.5f;
+        }
     }
 
-    public void BreakWall(Vector3 impactPoint, float radius, Vector3 force)
+    public void BreakWall(
+        Vector3 impactPoint,
+        float radius,
+        Vector3 force)
     {
         foreach (var brick in bricks)
         {
             if (brick == null || brick.activated)
                 continue;
 
-            float dist = Vector3.Distance(brick.transform.position, impactPoint);
-            if (dist > radius)
+
+            float distance =
+                Vector3.Distance(
+                    brick.transform.position,
+                    impactPoint
+                );
+
+
+            if (distance > radius)
                 continue;
 
-            float strength = 1f - (dist / radius);
 
-            Rigidbody rb = brick.GetComponent<Rigidbody>();
-            if (rb == null) continue;
+            float strength =
+                1f - (distance / radius);
 
-            rb.isKinematic = false;
 
-            rb.AddForce(force * strength, ForceMode.Impulse);
+            // El propio Brick controla su activación
+            brick.Activate();
+
+
+            // Aplicamos el impulso después
+            brick.Rigidbody.AddForce(
+                force * strength,
+                ForceMode.Impulse
+            );
         }
     }
 

@@ -12,13 +12,6 @@ public class Wind : MonoBehaviour
     [Header("Layers")]
     public LayerMask affectedLayers;
 
-    Rigidbody[] cachedBodies;
-
-    void Start()
-    {
-        cachedBodies = FindObjectsOfType<Rigidbody>();
-    }
-
     void FixedUpdate()
     {
         ApplyWind();
@@ -26,65 +19,78 @@ public class Wind : MonoBehaviour
 
     void ApplyWind()
     {
-        Vector3 baseWind = windDirection.normalized * strength;
-
         float time = Time.time;
 
-        float noiseX = Mathf.PerlinNoise(time * turbulenceFrequency, 0f) - 0.5f;
-        float noiseZ = Mathf.PerlinNoise(0f, time * turbulenceFrequency) - 0.5f;
+        Vector3 baseWind =
+            windDirection.normalized * strength;
 
-        Vector3 turbulence = new Vector3(noiseX, 0f, noiseZ) * turbulenceStrength;
+        float noiseX =
+            Mathf.PerlinNoise(time * turbulenceFrequency, 0f) - 0.5f;
 
-        Vector3 totalWind = baseWind + turbulence;
+        float noiseZ =
+            Mathf.PerlinNoise(0f, time * turbulenceFrequency) - 0.5f;
 
-        foreach (var rb in cachedBodies)
+        Vector3 turbulence =
+            new Vector3(noiseX, 0f, noiseZ) * turbulenceStrength;
+
+        Vector3 totalWind =
+            baseWind + turbulence;
+
+
+        Collider[] targets = Physics.OverlapSphere(
+            transform.position,
+            radius,
+            affectedLayers
+        );
+
+
+        foreach (Collider col in targets)
         {
-            if (rb == null || rb.isKinematic)
+            Rigidbody rb = col.attachedRigidbody;
+
+            if (rb == null)
                 continue;
 
-            // =========================
-            // LAYER FILTER (IMPORTANTE)
-            // =========================
-            if ((affectedLayers.value & (1 << rb.gameObject.layer)) == 0)
+            if (rb.isKinematic)
                 continue;
 
-            float dist = Vector3.Distance(transform.position, rb.position);
-            if (dist > radius)
-                continue;
 
-            float t = 1f - (dist / radius);
-            t = Mathf.SmoothStep(0f, 1f, t);
+            float distance =
+                Vector3.Distance(
+                    transform.position,
+                    rb.position
+                );
 
-            rb.AddForce(totalWind * t, ForceMode.Force);
+            float falloff =
+                1f - (distance / radius);
+
+            falloff = Mathf.SmoothStep(
+                0f,
+                1f,
+                falloff
+            );
+
+
+            rb.AddForce(
+                totalWind * falloff,
+                ForceMode.Force
+            );
         }
     }
 
     void OnDrawGizmos()
     {
-        // área de influencia
-        Gizmos.color = new Color(0f, 1f, 1f, 0.25f);
-        Gizmos.DrawSphere(transform.position, radius);
-
         Gizmos.color = Color.cyan;
-        Gizmos.DrawWireSphere(transform.position, radius);
 
-        // dirección del viento
-        Gizmos.color = Color.blue;
-        Vector3 dir = windDirection.normalized;
+        Gizmos.DrawWireSphere(
+            transform.position,
+            radius
+        );
 
-        Vector3 center = transform.position;
-        Vector3 end = center + dir * radius;
-
-        Gizmos.DrawLine(center, end);
-
-        // flecha
-        Vector3 right = Vector3.Cross(Vector3.up, dir) * 0.3f;
-
-        Gizmos.DrawLine(end, end - dir * 1f + right);
-        Gizmos.DrawLine(end, end - dir * 1f - right);
-
-        // turbulencia visual (opcional)
-        Gizmos.color = Color.white;
-        Gizmos.DrawWireCube(center, Vector3.one * 0.5f);
+        Gizmos.DrawLine(
+            transform.position,
+            transform.position +
+            windDirection.normalized * radius
+        );
     }
 }

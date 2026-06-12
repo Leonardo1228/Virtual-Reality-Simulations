@@ -1,67 +1,76 @@
 using UnityEngine;
 
+[RequireComponent(typeof(Rigidbody))]
 public class HeavyWall : MonoBehaviour
 {
-    [Header("Wall Settings")]
+    [Header("Wall")]
     public bool fixedWall = true;
-    public float breakImpulseThreshold = 40f;
 
-    [Header("Damage")]
-    public float damageMultiplier = 1f;
+    public float breakImpulseThreshold = 40f;
 
     [Header("Layers")]
     public LayerMask validImpactLayers;
 
     Rigidbody rb;
+
     bool broken;
+
 
     void Awake()
     {
         rb = GetComponent<Rigidbody>();
 
-        if (fixedWall && rb != null)
+        if (fixedWall)
         {
             rb.isKinematic = true;
         }
     }
 
+
     void OnCollisionEnter(Collision collision)
     {
-        if (broken) return;
+        if (broken)
+            return;
+
 
         if ((validImpactLayers.value & (1 << collision.gameObject.layer)) == 0)
             return;
 
-        float impact = collision.impulse.magnitude;
 
-        if (impact < 0.1f)
-            return;
+        float impact =
+            collision.impulse.magnitude;
 
-        HandleImpact(collision, impact);
-    }
 
-    void HandleImpact(Collision collision, float impact)
-    {
-        // daño opcional (puedes expandir esto después)
-        float damage = impact * damageMultiplier;
-
-        if (impact > breakImpulseThreshold)
+        if (impact >= breakImpulseThreshold)
         {
             Break(collision);
         }
     }
 
-    void Break(Collision collision)
+
+    public void Break(Collision collision)
     {
         broken = true;
 
-        if (rb != null)
-        {
-            rb.isKinematic = false;
-        }
+        rb.isKinematic = false;
 
-        // empuje físico real del choque
-        Vector3 force = collision.relativeVelocity * rb.mass;
-        rb.AddForce(force, ForceMode.Impulse);
+        rb.WakeUp();
+
+
+        // Transferimos la fuerza del golpe
+        rb.AddForce(
+            collision.impulse,
+            ForceMode.Impulse
+        );
+    }
+
+
+    public void Break()
+    {
+        broken = true;
+
+        rb.isKinematic = false;
+
+        rb.WakeUp();
     }
 }
